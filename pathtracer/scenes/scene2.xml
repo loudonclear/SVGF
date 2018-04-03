@@ -1,0 +1,23 @@
+<scenefile>
+	<cameradata>
+		<pos x="4" y="4" z="4"/>
+		<up x="0" y="1" z="0"/>
+		<focus x="0" y="2" z="0"/>
+		<heightangle v="120"/>
+	</cameradata>
+
+	<object type="tree" name="root">
+		<transblock>
+			<translate x="1" y="1" z="1"/>
+			<object type="primitive" name="mesh" filename="models/Harley-Davidson/Harley-Davidson.obj">
+				<blend v="1.0"/>
+				<reflective r="0.9" g="0.9" b="0.9"/>
+				<diffuse r="1.0" g="1.0" b="1.0"/>
+				<shininess v="30"/>
+				<specular r="1.0" g="1.0" b="1.0"/>
+			</object>
+		</transblock>
+	</object>
+
+</scenefile>
+

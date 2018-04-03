@@ -1,0 +1,25 @@
+<scenefile>
+	<cameradata>
+		<pos x="0" y="1" z="2"/>
+		<up x="0" y="1" z="0"/>
+		<focus x="0" y="1" z="0"/>
+		<heightangle v="90"/>
+	</cameradata>
+
+	<object type="tree" name="root">
+		<transblock>
+			<translate x="0" y="0" z="0"/>
+			<object type="primitive" name="mesh" filename="models/MirrorScene/mirror.obj">
+			</object>
+		</transblock>
+		<transblock>
+			<translate x="-0.2" y="0" z="-0.5"/>
+			<rotate x="0" y="1" z="0" angle="45"/>
+			<scale x="0.3" y="0.3" z="0.3"/>
+			<object type="primitive" name="mesh" filename="models/MedievalBoat/MedievalBoat.obj">
+			</object>
+		</transblock>
+
+	</object>
+
+</scenefile>
