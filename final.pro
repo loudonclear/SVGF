@@ -10,6 +10,23 @@ QMAKE_CXXFLAGS += -msse2
 QMAKE_CXXFLAGS += -std=c++14
 CONFIG += c++14
 
+# allow debug and release modes, and set -DNDEBUG for release mode
+CONFIG += debug_and_release
+CONFIG(release, debug|release): DEFINES += NDEBUG
+
+Release:DESTDIR = release
+Release:OBJECTS_DIR = release/.obj
+Release:MOC_DIR = release/.moc
+Release:RCC_DIR = release/.rcc
+Release:UI_DIR = release/.ui
+
+Debug:DESTDIR = debug
+Debug:OBJECTS_DIR = debug/.obj
+Debug:MOC_DIR = debug/.moc
+Debug:RCC_DIR = debug/.rcc
+Debug:UI_DIR = debug/.ui
+
+
 win32 {
     DEFINES += GLEW_STATIC
     LIBS += -lopengl32 -lglu32
@@ -155,5 +172,3 @@ RESOURCES += \
 DISTFILES += \
     src/BVH/License.txt \
     src/BVH/README
-
-

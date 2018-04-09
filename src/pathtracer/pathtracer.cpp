@@ -1,11 +1,13 @@
 #include "pathtracer.h"
 
-#include <iostream>
 #include <util/CS123Common.h>
+#include <glm/gtx/norm.hpp>
+
 #include <QRunnable>
 #include <QThreadPool>
 
-#include <glm/gtx/norm.hpp>
+#include <random>
+#include <iostream>
 
 const int seed = 1;
 

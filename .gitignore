@@ -4,6 +4,7 @@ final.pro.*
 final.pro.user
 debug/
 release/
+build/
 Makefile
 Makefile.debug
 Makefile.release
@@ -14,4 +15,3 @@ moc_*
 qrc_resources.cpp
 object_script.final.Debug
 object_script.final.Release
-
