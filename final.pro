@@ -65,7 +65,8 @@ SOURCES += \
     src/BVH/BVH.cpp \
     src/util/CS123XmlSceneParser.cpp \
     src/gl/util/SVGFGBuffer.cpp \
-    src/pathtracer/pathtracer.cpp
+    src/pathtracer/pathtracer.cpp \
+    src/gl/util/ResourceLoader.cpp
 
 
 HEADERS += \
@@ -107,7 +108,8 @@ HEADERS += \
     src/util/CS123XmlSceneParser.h \
     src/util/tiny_obj_loader.h \
     src/gl/util/SVGFGBuffer.h \
-    src/pathtracer/pathtracer.h
+    src/pathtracer/pathtracer.h \
+    src/gl/util/ResourceLoader.h
 
 
 

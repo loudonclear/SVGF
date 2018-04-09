@@ -15,7 +15,7 @@ const float epsilon = 0.00001;
 const float sigmaZ = 1.0;
 const float sigmaN = 128.0;
 const float sigmaL = 4.0;
-const float h[5] = float[] (1.0 / 16.0, 1.0 / 4.0, 3.0 / 8.0. 1.0 / 4.0, 1.0 / 16.0);
+const float h[5] = float[5](1.0/16.0, 1.0/4.0, 3.0/8.0, 1.0/4.0, 1.0/16.0);
 
 
 float luma(vec3 rgb) {
@@ -34,14 +34,15 @@ void main() {
     vec3 normal = texture(gNormal, uv).rgb;
     vec3 color = texture(colorVariance, uv).rgb;
     float variance = texture(colorVariance, uv).w;
+    float luminance = 0.0;
 
     // TODO: Might need normalization
     float depth = fragpos.z;
 
     vec2 texelSize = 1.0 / textureSize(gPosition, 0).xy;
-    const int step = 1 << level;
+    int step = 1 << level;
 
-    vec3 c = 0.0;
+    vec3 c = vec3(0.0, 0.0, 0.0);
     float v = 0.0;
     float weights = 0.0;
 
@@ -74,7 +75,7 @@ void main() {
     }
 
     if (weights > 0.0) {
-        cnext.rgb = c / weights;
-        vnext.a = v / (weights * weights);
+        cvnext.rgb = c / weights;
+        cvnext.a = v / (weights * weights);
     }
 }

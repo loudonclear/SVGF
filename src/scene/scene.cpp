@@ -14,6 +14,7 @@
 #include "glm/gtx/string_cast.hpp"
 
 #include "pathtracer/pathtracer.h"
+#include "gl/util/ResourceLoader.h"
 #include "gl/util/SVGFGBuffer.h"
 
 using namespace std;
@@ -21,8 +22,7 @@ using namespace std::chrono;
 
 Scene::Scene(int width, int height) : width(width), height(height)
 {
-    // TODO: Actually fix shaders
-    m_defaultShader = std::make_unique<Shader>(":/shaders/shader.vert", ":/shaders/shader.frag");
+    m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
     m_defaultShader->setUniform("useLighting", false);
 
 
@@ -31,7 +31,7 @@ Scene::Scene(int width, int height) : width(width), height(height)
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
 
     // Currently just horizontal
-    m_waveletShader = std::make_unique<Shader>(":/shaders/wavelet.vert", ":/shaders/wavelet.frag");
+    m_waveletShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/wavelet.vert"), ResourceLoader::loadResourceFileToString(":/shaders/wavelet.frag"));
 }
 
 
@@ -112,13 +112,13 @@ void Scene::render() const {
     //std::cout << glm::to_string(m_camera.getLook()) << std::endl;
 
     // TEST
-//    for (Object *obj : *_objects) {
-//        m_defaultShader->setUniform("m", obj->transform);
-//        m_defaultShader->setUniform("ambient_color", glm::vec3(0.2f, 0.2f, 0.2f));
-//        m_defaultShader->setUniform("diffuse_color", glm::vec3(0.2f, 0.2f, 0.2f));
-//        obj->render();
-//    }
-//    trace();
+    for (Object *obj : *_objects) {
+        m_defaultShader->setUniform("m", obj->transform);
+        m_defaultShader->setUniform("ambient_color", glm::vec3(0.2f, 0.2f, 0.2f));
+        m_defaultShader->setUniform("diffuse_color", glm::vec3(0.2f, 0.2f, 0.2f));
+        obj->render();
+    }
+    trace();
 
 
     // Pipeline:
