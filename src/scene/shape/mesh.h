@@ -24,19 +24,19 @@ public:
          const std::vector<tinyobj::material_t> &materials,
          const CS123SceneMaterial &wholeObjectMaterial);
 
-    virtual void render() const;
+    virtual void render() const override;
 
-    virtual bool getIntersection(const Ray &ray, IntersectionInfo *intersection) const;
+    virtual bool getIntersection(const Ray &ray, IntersectionInfo *intersection) const override;
 
-    virtual glm::vec3 sample() const;
+    virtual glm::vec3 sample() const override;
 
-    virtual float getSurfaceArea() const;
+    virtual float getSurfaceArea() const override;
 
-    virtual glm::vec3 getNormal(const IntersectionInfo &I) const;
+    virtual glm::vec3 getNormal(const IntersectionInfo &I) const override;
 
-    virtual BBox getBBox() const;
+    virtual BBox getBBox() const override;
 
-    virtual glm::vec3 getCentroid() const;
+    virtual glm::vec3 getCentroid() const override;
 
     const glm::ivec3 getTriangleIndices(int faceIndex) const;
     const tinyobj::material_t& getMaterial(int faceIndex) const;

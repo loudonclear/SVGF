@@ -1,39 +1,39 @@
 #include "view.h"
+
+#include "scene/scene.h"
 #include "viewformat.h"
 
 #include <QApplication>
+#include <QCommandLineParser>
+#include <QDebug>
+#include <QFileDialog>
 #include <QKeyEvent>
 #include <QMessageBox>
-#include <QFileDialog>
-#include <QDebug>
+
 #include <iostream>
 
-#include "scene/scene.h"
-
 View::View(QWidget *parent)
-    : QGLWidget(ViewFormat(), parent),
-    m_time(),
-    m_timer(),
-    m_captureMouse(false),
-    m_scene(nullptr)
-{
-    setMouseTracking(true);
+    : QGLWidget(ViewFormat(), parent), m_time(), m_timer(),
+      m_captureMouse(false), m_scene(nullptr) {
+  setMouseTracking(true);
 
-    /* Hide the cursor */
-    if (m_captureMouse) {
-        QApplication::setOverrideCursor(Qt::BlankCursor);
-    }
+  /* Hide the cursor */
+  if (m_captureMouse) {
+    QApplication::setOverrideCursor(Qt::BlankCursor);
+  }
 
-    /* View needs keyboard focus */
-    setFocusPolicy(Qt::StrongFocus);
+  /* View needs keyboard focus */
+  setFocusPolicy(Qt::StrongFocus);
 
-    /* The update loop is implemented using a timer */
-    connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
-}
+  /* The update loop is implemented using a timer */
+  connect(&m_timer, SIGNAL(timeout()), this, SLOT(tick()));
 
-View::~View()
-{
-    if (m_scene) delete m_scene;
+  /* Process Command Line Arguments */
+  m_cli_parser.setApplicationDescription("Path tracer with render denoising using edge-avoiding wavelets.");
+  m_cli_parser.addHelpOption();
+  m_cli_parser.addPositionalArgument("scene", ".xml scene file to load for simulation");
+
+  m_cli_parser.process(*QApplication::instance());
 }
 
 void View::initializeGL() {
@@ -60,8 +60,9 @@ void View::initializeGL() {
    /* Start a timer that will try to get 60 frames per second (the actual
     * frame rate depends on the operating system and other running programs)
     */
-    m_time.start();
-    m_timer.start(1000 / 60);
+    // Right now we don't need a timer
+    // m_time.start();
+    // m_timer.start(1000 / 60);
 }
 
 void View::resizeGL(int w, int h) {
@@ -121,13 +122,13 @@ void View::mouseMoveEvent(QMouseEvent *event) {
 
 /* File dialog */
 void View::fileOpen() {
-    QString file = QFileDialog::getOpenFileName(this, "Open File", "./res/scenes/");
-    if (!file.isNull()) {
-
-        delete m_scene;
-        m_scene = nullptr;
-        if(!Scene::load(file, &m_scene, width(), height())) {
-            std::cerr << "Error parsing scene file " << file.toStdString() << std::endl;
-        }
+  QString file =
+      QFileDialog::getOpenFileName(this, "Open File", "./res/scenes/");
+  if (!file.isNull()) {
+    m_scene = Scene::load(file, width(), height());
+    if (!m_scene) {
+      std::cerr << "Error parsing scene file " << file.toStdString()
+                << std::endl;
     }
+  }
 }

@@ -46,41 +46,36 @@ Scene::~Scene()
     delete lights;
 }
 
-bool Scene::load(QString filename, Scene **scenePointer, int width, int height)
-{
-    CS123XmlSceneParser parser(filename.toStdString());
-    if(!parser.parse()) {
-        return false;
-    }
-    CS123SceneCameraData cameraData;
-    parser.getCameraData(cameraData);
-    BasicCamera camera(cameraData.pos.xyz(),
-                       cameraData.look.xyz(),
-                       cameraData.up.xyz(),
-                       cameraData.heightAngle,
-                       (float)width / (float)height);
-    Scene *scene = new Scene(width, height);
-    scene->setCamera(camera);
+std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
+  CS123XmlSceneParser parser(filename.toStdString());
+  if (!parser.parse()) {
+    return nullptr;
+  }
+  CS123SceneCameraData cameraData;
+  parser.getCameraData(cameraData);
+  BasicCamera camera(cameraData.pos.xyz(), cameraData.look.xyz(),
+                     cameraData.up.xyz(), cameraData.heightAngle,
+                     (float)width / (float)height);
+  std::unique_ptr <Scene> scene = std::make_unique<Scene>(width, height);
+  scene->setCamera(camera);
 
-    CS123SceneGlobalData globalData;
-    parser.getGlobalData(globalData);
-    scene->setGlobalData(globalData);
+  CS123SceneGlobalData globalData;
+  parser.getGlobalData(globalData);
+  scene->setGlobalData(globalData);
 
-    CS123SceneLightData lightData;
-    for(int i = 0, size = parser.getNumLights(); i < size; ++i) {
-        parser.getLightData(i, lightData);
-        scene->addLight(lightData);
-    }
+  CS123SceneLightData lightData;
+  for (int i = 0, size = parser.getNumLights(); i < size; ++i) {
+    parser.getLightData(i, lightData);
+    scene->addLight(lightData);
+  }
 
-    QFileInfo info(filename);
-    QString dir = info.path();
-    CS123SceneNode *root = parser.getRootNode();
-    if(!parseTree(root, scene, dir.toStdString() + "/")) {
-        return false;
-    }
-
-    *scenePointer = scene;
-    return true;
+  QFileInfo info(filename);
+  QString dir = info.path();
+  CS123SceneNode *root = parser.getRootNode();
+  if (!parseTree(root, *scene, dir.toStdString() + "/")) {
+    return nullptr;
+  }
+  return scene;
 }
 
 void Scene::trace() const {
@@ -91,12 +86,12 @@ void Scene::trace() const {
     m_pathTracer->traceScene(data, *this);
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
-    auto duration = duration_cast<seconds>( t2 - t1 ).count();
+    float duration = duration_cast<milliseconds>( t2 - t1 ).count() / 1000.0;
     cout << "Scene took " << duration << " seconds to render." << endl;
 
-    bool success = image.save("./res/results/output.png");
+    bool success = image.save(QFileInfo("../res/results/output.png").absoluteFilePath());
     if(!success) {
-        success = image.save("./res/results/output.png", "PNG");
+        success = image.save("../res/results/output.png", "PNG");
     }
     if(success) {
         cout << "Wrote rendered image " << endl;
@@ -118,7 +113,9 @@ void Scene::render() const {
         m_defaultShader->setUniform("diffuse_color", glm::vec3(0.2f, 0.2f, 0.2f));
         obj->render();
     }
+    std::cout<<"Tracing..." << std::endl;
     trace();
+    std::cout<<"Done!" << std::endl;
 
 
     // Pipeline:
@@ -138,7 +135,7 @@ void Scene::setBVH(const BVH &bvh)
     m_bvh = new BVH(bvh);
 }
 
-bool Scene::parseTree(CS123SceneNode *root, Scene *scene, const std::string &baseDir)
+bool Scene::parseTree(CS123SceneNode *root, Scene& scene, const std::string &baseDir)
 {
     std::vector<Object *> *objects = new std::vector<Object *>;
     parseNode(root, glm::mat4x4(1.f), objects, baseDir);
@@ -155,9 +152,9 @@ bool Scene::parseTree(CS123SceneNode *root, Scene *scene, const std::string &bas
         }
     }
 
-    scene->lights = lights;
-    scene->_objects = objects;
-    scene->setBVH(*bvh);
+    scene.lights = lights;
+    scene._objects = objects;
+    scene.setBVH(*bvh);
     return true;
 }
 
@@ -341,4 +338,3 @@ void Scene::addLight(const CS123SceneLightData &data)
 //{
 //    return m_lights;
 //}
-

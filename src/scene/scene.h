@@ -19,7 +19,7 @@ public:
     Scene(int width, int height);
     virtual ~Scene();
 
-    static bool load(QString filename, Scene **scenePointer, int width, int height);
+    static std::unique_ptr<Scene> load(QString filename, int width, int height);
 
     void trace() const;
     void render() const;
@@ -53,7 +53,7 @@ private:
     CS123SceneGlobalData m_globalData;
     std::vector<CS123SceneLightData> m_lights;
 
-    static bool parseTree(CS123SceneNode *root, Scene *scene, const std::string& baseDir);
+    static bool parseTree(CS123SceneNode *root, Scene& scene, const std::string& baseDir);
     static void parseNode(CS123SceneNode *node, const glm::mat4x4 &parentTransform, std::vector<Object *> *objects, const std::string& baseDir);
     static void addPrimitive(CS123ScenePrimitive *prim, const glm::mat4x4 &transform, std::vector<Object *> *objects, const std::string& baseDir);
     static std::vector<Mesh*> loadMesh(std::string filePath, const CS123SceneMaterial &material, const glm::mat4x4 &transform, const std::string& baseDir);

@@ -3,29 +3,31 @@
 
 #include "glm/glm.hpp"
 #include "GL/glew.h"
+#include "scene/scene.h"
 
 #include <qgl.h>
+
 #include <QTime>
 #include <QTimer>
+#include <QCommandLineParser>
+
 #include <memory>
 #include <unordered_map>
-
-class Scene;
 
 class View : public QGLWidget {
     Q_OBJECT
 
 public:
     View(QWidget *parent);
-    ~View();
 
 private:
+    QCommandLineParser m_cli_parser;
     QTime m_time;
     QTimer m_timer;
     bool m_captureMouse;
     std::unordered_map<int, bool> m_keys;
 
-    Scene* m_scene;
+    std::unique_ptr<Scene> m_scene;
 
     // initialized openGL
     void initializeGL();
