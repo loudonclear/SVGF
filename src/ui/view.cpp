@@ -32,7 +32,6 @@ View::View(QWidget *parent)
   m_cli_parser.setApplicationDescription("Path tracer with render denoising using edge-avoiding wavelets.");
   m_cli_parser.addHelpOption();
   m_cli_parser.addPositionalArgument("scene", ".xml scene file to load for simulation");
-
   m_cli_parser.process(*QApplication::instance());
 }
 
@@ -63,6 +62,16 @@ void View::initializeGL() {
     // Right now we don't need a timer
     // m_time.start();
     // m_timer.start(1000 / 60);
+
+    /* Load initial scene  */
+    const QStringList cli_args = m_cli_parser.positionalArguments();
+    QFileInfo info(cli_args.at(0));
+    QString absolute_scene_path = info.absoluteFilePath();
+    m_scene = Scene::load(absolute_scene_path, width(), height());
+    if (!m_scene) {
+      std::cerr << "Error parsing scene file "
+                << absolute_scene_path.toStdString() << std::endl;
+    }
 }
 
 void View::resizeGL(int w, int h) {
