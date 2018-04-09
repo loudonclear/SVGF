@@ -1,0 +1,17 @@
+.DS_Store
+final.pro.*
+*.o
+final.pro.user
+debug/
+release/
+Makefile
+Makefile.debug
+Makefile.release
+.qmake.*
+final
+fontconfig/*
+moc_*
+qrc_resources.cpp
+object_script.final.Debug
+object_script.final.Release
+
