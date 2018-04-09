@@ -15,8 +15,12 @@ const float epsilon = 0.00001;
 const float sigmaZ = 1.0;
 const float sigmaN = 128.0;
 const float sigmaL = 4.0;
-const float h[] = {1.0 / 16.0, 1.0 / 4.0, 3.0 / 8.0. 1.0 / 4.0, 1.0 / 16.0};
+const float h[5] = float[] (1.0 / 16.0, 1.0 / 4.0, 3.0 / 8.0. 1.0 / 4.0, 1.0 / 16.0);
 
+
+float luma(vec3 rgb) {
+    return (rgb.r + rgb.r + rgb.b + rgb.g + rgb.g + rgb.g) / 6.0;
+}
 
 // TODO: standard luminance formula function
 
@@ -26,7 +30,7 @@ const float h[] = {1.0 / 16.0, 1.0 / 4.0, 3.0 / 8.0. 1.0 / 4.0, 1.0 / 16.0};
 // Horizontal wavelet (might be able to change texcoords for vertical pass)
 void main() {
     vec3 fragpos = texture(gPosition, uv).rgb;
-    int meshID = texture(gPosition, uv).w;
+    int meshID = int(texture(gPosition, uv).w);
     vec3 normal = texture(gNormal, uv).rgb;
     vec3 color = texture(colorVariance, uv).rgb;
     float variance = texture(colorVariance, uv).w;
@@ -51,14 +55,14 @@ void main() {
             float d = p.z;
 
             float dz = depth - d;
-            float wz = min(1.0, expf(-fabs(dz) / (sigmaZ * fabs(dz * (uv.x - loc.x)) + epsilon)));
+            float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz * (uv.x - loc.x)) + epsilon)));
 
-            float wn = powf(max(0, dot(normal, n)), sigmaN);
+            float wn = pow(max(0, dot(normal, n)), sigmaN);
 
             // TODO: luminance
             float l = 0.0;
             float gvl = 0.0;
-            float wl = min(1.0, expf(-fabs(luminance - l)) / (sigmaL * gvl + epsilon));
+            float wl = min(1.0, exp(-abs(luminance - l)) / (sigmaL * gvl + epsilon));
 
             float w = wz * wn * wl;
             float weight = h[xoffset + support] * w;
@@ -69,6 +73,8 @@ void main() {
         }
     }
 
-    cnext.xyz = c / (weights + epsilon);
-    vnext.w = v / (weights * weights + epsilon);
+    if (weights > 0.0) {
+        cnext.rgb = c / weights;
+        vnext.a = v / (weights * weights);
+    }
 }
