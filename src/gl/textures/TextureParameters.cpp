@@ -4,6 +4,8 @@
 #include "gl/textures/Texture.h"
 #include "gl/textures/Texture2D.h"
 
+namespace CS123 { namespace GL {
+
 
 TextureParameters::TextureParameters(FILTER_METHOD filterMethod, WRAP_METHOD wrapMethod) :
     m_filterMethod(filterMethod),
@@ -23,3 +25,5 @@ void TextureParameters::applyTo(const Texture2D &texture) {
 
     texture.unbind();
 }
+
+}}

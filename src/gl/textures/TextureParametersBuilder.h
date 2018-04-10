@@ -3,6 +3,8 @@
 
 #include "TextureParameters.h"
 
+namespace CS123 { namespace GL {
+
 class TextureParametersBuilder {
 public:
     TextureParametersBuilder();
@@ -16,5 +18,7 @@ private:
     TextureParameters::FILTER_METHOD m_filterMethod;
     TextureParameters::WRAP_METHOD m_wrapMethod;
 };
+
+}}
 
 #endif // TEXTUREPARAMETERSBUILDER_H

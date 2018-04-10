@@ -59,18 +59,19 @@ void View::initializeGL() {
    /* Start a timer that will try to get 60 frames per second (the actual
     * frame rate depends on the operating system and other running programs)
     */
-    // Right now we don't need a timer
-    // m_time.start();
-    // m_timer.start(1000 / 60);
+     m_time.start();
+     m_timer.start(1000 / 60);
 
     /* Load initial scene  */
     const QStringList cli_args = m_cli_parser.positionalArguments();
-    QFileInfo info(cli_args.at(0));
-    QString absolute_scene_path = info.absoluteFilePath();
-    m_scene = Scene::load(absolute_scene_path, width(), height());
-    if (!m_scene) {
-      std::cerr << "Error parsing scene file "
-                << absolute_scene_path.toStdString() << std::endl;
+    if (cli_args.size() > 0) {
+        QFileInfo info(cli_args.at(0));
+        QString absolute_scene_path = info.absoluteFilePath();
+        m_scene = Scene::load(absolute_scene_path, width(), height());
+        if (!m_scene) {
+          std::cerr << "Error parsing scene file "
+                    << absolute_scene_path.toStdString() << std::endl;
+        }
     }
 }
 
@@ -85,6 +86,7 @@ void View::paintGL() {
     if (m_scene) {
         m_scene->render();
     }
+
 }
 
 void View::updateInputs() {
@@ -94,7 +96,7 @@ void View::updateInputs() {
 
 void View::tick() {
     /* Get the number of seconds since the last tick (variable update rate) */
-    float dt = m_time.restart() * 0.001f;
+    //float dt = m_time.restart() * 0.001f;
 
     updateInputs();
 
@@ -113,9 +115,9 @@ void View::keyReleaseEvent(QKeyEvent *event) {
 
 
 /* Mouse events */
-void View::mousePressEvent(QMouseEvent *event) {}
+void View::mousePressEvent(QMouseEvent *) {}
 
-void View::mouseReleaseEvent(QMouseEvent *event) {}
+void View::mouseReleaseEvent(QMouseEvent *) {}
 
 void View::mouseMoveEvent(QMouseEvent *event) {
     if(m_captureMouse) {

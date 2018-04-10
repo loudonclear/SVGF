@@ -9,6 +9,8 @@
 #include "GL/glew.h"
 #include "glm/glm.hpp"
 
+namespace CS123 { namespace GL {
+
 class Texture1D;
 class Texture2D;
 class Texture3D;
@@ -99,5 +101,7 @@ private:
     std::map<std::string, GLuint> m_textureLocations; // name to uniform location
     std::map<GLuint, GLuint> m_textureSlots; // uniform location to texture slot
 };
+
+}}
 
 #endif // SHADER_H

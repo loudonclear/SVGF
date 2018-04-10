@@ -1,5 +1,7 @@
 #include "TextureParametersBuilder.h"
 
+using namespace CS123::GL;
+
 TextureParametersBuilder::TextureParametersBuilder() :
     m_filterMethod(TextureParameters::FILTER_METHOD::NEAREST),
     m_wrapMethod(TextureParameters::WRAP_METHOD::REPEAT)

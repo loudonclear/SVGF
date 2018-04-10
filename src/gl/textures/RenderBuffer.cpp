@@ -2,6 +2,7 @@
 
 #include "GL/glew.h"
 
+using namespace CS123::GL;
 
 RenderBuffer::RenderBuffer() :
     m_handle(0)

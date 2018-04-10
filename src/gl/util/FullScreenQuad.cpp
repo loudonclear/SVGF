@@ -7,6 +7,8 @@
 #include "gl/datatype/VAO.h"
 #include "gl/shaders/ShaderAttribLocations.h"
 
+using namespace CS123::GL;
+
 FullScreenQuad::FullScreenQuad()
 {
     float data[] = { -1.0f,  1.0f,   0.0f, 1.0f,
@@ -14,7 +16,7 @@ FullScreenQuad::FullScreenQuad()
                       1.0f,  1.0f,   1.0f, 1.0f,
                       1.0f, -1.0f,   1.0f, 0.0f };
 
-    std::vector<VBOAttribMarker> attribs;
+    std::vector<CS123::GL::VBOAttribMarker> attribs;
     attribs.push_back(VBOAttribMarker(ShaderAttrib::POSITION, 2, 0));
     attribs.push_back(VBOAttribMarker(ShaderAttrib::TEXCOORD0, 2, 2*sizeof(float)));
     VBO vbo(data, sizeof(data), attribs, VBO::GEOMETRY_LAYOUT::LAYOUT_TRIANGLE_STRIP);

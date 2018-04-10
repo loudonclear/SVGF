@@ -5,6 +5,7 @@
 
 #include "GL/glew.h"
 
+namespace CS123 { namespace GL {
 
 class VBOAttribMarker;
 
@@ -46,5 +47,7 @@ private:
     GLuint m_stride;
     GEOMETRY_LAYOUT m_triangleLayout;
 };
+
+}}
 
 #endif // VBO_H

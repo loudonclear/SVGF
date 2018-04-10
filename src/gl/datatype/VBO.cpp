@@ -2,8 +2,8 @@
 
 #include "gl/datatype/VBOAttribMarker.h"
 
+namespace CS123 { namespace GL {
 
-// This will count up the total size of each vertex, based on the maximum offset + numElements
 unsigned int calculateFloatsPerVertex(const std::vector<VBOAttribMarker> &markers) {
     unsigned int max = 0;
     for (auto it = markers.begin(); it!= markers.end(); it++) {
@@ -88,3 +88,4 @@ VBO::GEOMETRY_LAYOUT VBO::triangleLayout() const {
     return m_triangleLayout;
 }
 
+}}

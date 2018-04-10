@@ -3,14 +3,17 @@
 
 #include "GL/glew.h"
 
-void checkError();
-void printGLErrorCodeInEnglish(GLenum err);
+namespace CS123 { namespace GL {
 
-void checkFramebufferStatus();
-void printFramebufferErrorCodeInEnglish(GLenum err);
+    void checkError();
+    void printGLErrorCodeInEnglish(GLenum err);
 
-void checkShaderCompilationStatus(GLuint shaderID);
-void checkShaderLinkStatus(GLuint shaderProgramID);
+    void checkFramebufferStatus();
+    void printFramebufferErrorCodeInEnglish(GLenum err);
 
+    void checkShaderCompilationStatus(GLuint shaderID);
+    void checkShaderLinkStatus(GLuint shaderProgramID);
+
+}}
 
 #endif // GLDEBUG_H

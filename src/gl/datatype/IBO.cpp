@@ -1,5 +1,7 @@
 #include "IBO.h"
 
+namespace CS123 { namespace GL {
+
 IBO::IBO(int *data, int size) :
     m_handle(-1)
 {
@@ -22,3 +24,4 @@ void IBO::unbind() const {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
+}}

@@ -3,6 +3,8 @@
 
 #include <memory>
 
+namespace CS123 { namespace GL {
+
 class VAO;
 
 class FullScreenQuad {
@@ -14,5 +16,7 @@ public:
 private:
     std::unique_ptr<VAO> m_vao;
 };
+
+}}
 
 #endif // FULLSCREENQUAD_H

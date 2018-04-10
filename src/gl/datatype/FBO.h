@@ -6,6 +6,7 @@
 
 #include "gl/textures/TextureParameters.h"
 
+namespace CS123 { namespace GL {
 
 class RenderBuffer;
 class Texture2D;
@@ -45,5 +46,7 @@ private:
     int m_width;
     int m_height;
 };
+
+}}
 
 #endif // FBO_H

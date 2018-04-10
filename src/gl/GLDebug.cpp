@@ -5,6 +5,8 @@
 
 #include <GL/glew.h>
 
+namespace CS123 { namespace GL {
+
 void checkError() {
     GLenum err = glGetError();
     if (err != GL_NO_ERROR) {
@@ -116,3 +118,4 @@ void checkShaderLinkStatus(GLuint shaderProgramID) {
     }
 }
 
+}}
