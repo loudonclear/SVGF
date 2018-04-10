@@ -68,7 +68,7 @@ void PathTracer::traceScene(QRgb *imageData, const Scene& scene) {
     pool.waitForDone();
 
     toneMap(imageData, intensityValues);
-    delete intensityValues;
+    delete[] intensityValues;
 }
 
 void PathTracer::render(const Scene& scene, glm::vec3 *intensityValues, glm::mat4x4 &invViewMat, int x0, int y0, int x1, int y1) {

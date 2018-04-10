@@ -101,6 +101,7 @@ void Scene::trace() const {
 }
 
 void Scene::render() const {
+    m_defaultShader->bind();
     m_defaultShader->setUniform("p", m_camera.getScaleMatrix());
     m_defaultShader->setUniform("v", m_camera.getViewMatrix());
 
@@ -128,6 +129,7 @@ void Scene::render() const {
 
     // TODO: Post-processing
 
+    m_defaultShader->unbind();
 }
 
 void Scene::setBVH(const BVH &bvh)
