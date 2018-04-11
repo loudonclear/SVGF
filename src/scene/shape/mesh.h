@@ -15,7 +15,7 @@ class Mesh : public Object
 {
 public:
     virtual ~Mesh();
-    void init(const std::vector<glm::vec3> &vertices,
+    void init(int id, const std::vector<glm::vec3> &vertices,
          const std::vector<glm::vec3> &normals,
          const std::vector<glm::vec2> &uvs,
          const std::vector<glm::vec3> &colors,
@@ -24,7 +24,7 @@ public:
          const std::vector<tinyobj::material_t> &materials,
          const CS123SceneMaterial &wholeObjectMaterial);
 
-    virtual void render() const override;
+    virtual void render(std::shared_ptr<CS123::GL::Shader> &shader, const bool pipeline) const override;
 
     virtual bool getIntersection(const Ray &ray, IntersectionInfo *intersection) const override;
 
@@ -53,6 +53,8 @@ private:
     // Properties fromt the scene file
     CS123SceneMaterial _wholeObjectMaterial;
 
+    int m_id;
+
     // Properties from the .obj file
     std::vector<glm::vec3> _vertices;
     std::vector<glm::vec3> _normals;
@@ -62,10 +64,8 @@ private:
     std::vector<int> _materialIds;
     std::vector<tinyobj::material_t> _materials;
 
-    GLuint m_Vao;
-    GLuint m_Vbo;
-    GLuint m_Ibo;
-    unsigned int m_numVertices;
+    std::vector<GLuint> m_VAOs;
+    std::vector<unsigned int> m_numVertices;
 
     BVH *_meshBvh;
     float m_sa;

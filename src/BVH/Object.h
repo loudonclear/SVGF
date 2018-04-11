@@ -4,7 +4,9 @@
 #include "IntersectionInfo.h"
 #include "Ray.h"
 #include "BBox.h"
+#include <memory>
 
+#include "gl/shaders/Shader.h"
 #include "util/CS123SceneData.h"
 
 class Object {
@@ -18,7 +20,7 @@ public:
   virtual bool getIntersection(const Ray &ray,
                                IntersectionInfo *intersection) const = 0;
 
-  virtual void render() const = 0;
+  virtual void render(std::shared_ptr<CS123::GL::Shader> &shader, const bool pipeline) const = 0;
 
   virtual glm::vec3 sample() const = 0;
 

@@ -4,7 +4,7 @@ in vec2 uv;
 
 out vec4 cvnext;
 
-uniform sampler2D gPosition; // TODO: Add mesh id as 4th component
+uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D colorVariance;
 
@@ -30,10 +30,11 @@ float luma(vec3 rgb) {
 // Horizontal wavelet (might be able to change texcoords for vertical pass)
 void main() {
     vec3 fragpos = texture(gPosition, uv).rgb;
-    int meshID = int(texture(gPosition, uv).w);
+    int meshID = int(texture(gPosition, uv).a);
     vec3 normal = texture(gNormal, uv).rgb;
+    int matID = int(texture(gNormal, uv).a);
     vec3 color = texture(colorVariance, uv).rgb;
-    float variance = texture(colorVariance, uv).w;
+    float variance = texture(colorVariance, uv).a;
     float luminance = 0.0;
 
     // TODO: Might need normalization
@@ -42,15 +43,16 @@ void main() {
     vec2 texelSize = 1.0 / textureSize(gPosition, 0).xy;
     int step = 1 << level;
 
-    vec3 c = vec3(0.0, 0.0, 0.0);
+    vec3 c = vec3(0.0);
     float v = 0.0;
     float weights = 0.0;
 
     for (int xoffset = -support; xoffset <= support; xoffset++) {
         vec2 loc = uv + vec2(step * xoffset * texelSize.x);
-        int m = int(texture(gPosition, loc).a);
+        int meID = int(texture(gPosition, loc).a);
+        int maID = int(texture(gNormal, loc).a);
 
-        if (meshID == m) {
+        if (meshID == meID && matID == maID) {
             vec3 p = texture(gPosition, loc).rgb;
             vec3 n = texture(gNormal, loc).rgb;
             float d = p.z;

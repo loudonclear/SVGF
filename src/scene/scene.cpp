@@ -134,17 +134,12 @@ void Scene::render() {
         m_defaultShader->setUniform("p", m_camera.getProjectionMatrix());
         m_defaultShader->setUniform("v", m_camera.getViewMatrix());
 
-        m_defaultShader->setUniform("ambient_color", glm::vec3(0.2f, 0.2f, 0.2f));
-        m_defaultShader->setUniform("diffuse_color", glm::vec3(0.2f, 0.2f, 0.2f));
-        m_defaultShader->setUniform("specular_color", glm::vec3(0.2f, 0.2f, 0.2f));
-        m_defaultShader->setUniform("shininess", 10.f);
-
         m_defaultShader->setUniform("light_dir", glm::vec3(0, 0, -1.f));
         m_defaultShader->setUniform("light_color", glm::vec3(0.2f, 0.2f, 0.2f));
 
         for (Object *obj : *_objects) {
             m_defaultShader->setUniform("m", obj->transform);
-            obj->render();
+            obj->render(m_defaultShader, m_pipeline);
         }
         m_defaultShader->unbind();
     }
@@ -159,7 +154,8 @@ void Scene::setBVH(const BVH &bvh)
 bool Scene::parseTree(CS123SceneNode *root, Scene& scene, const std::string &baseDir)
 {
     std::vector<Object *> *objects = new std::vector<Object *>;
-    parseNode(root, glm::mat4x4(1.f), objects, baseDir);
+    int id;
+    parseNode(root, glm::mat4x4(1.f), objects, baseDir, id);
     if(objects->size() == 0) {
         return false;
     }
@@ -179,7 +175,7 @@ bool Scene::parseTree(CS123SceneNode *root, Scene& scene, const std::string &bas
     return true;
 }
 
-void Scene::parseNode(CS123SceneNode *node, const glm::mat4x4 &parentTransform, std::vector<Object *> *objects, const std::string &baseDir)
+void Scene::parseNode(CS123SceneNode *node, const glm::mat4x4 &parentTransform, std::vector<Object *> *objects, const std::string &baseDir, int &id)
 {
     glm::mat4x4 transform = parentTransform;
     for(CS123SceneTransformation *trans : node->transformations) {
@@ -199,20 +195,20 @@ void Scene::parseNode(CS123SceneNode *node, const glm::mat4x4 &parentTransform, 
         }
     }
     for(CS123ScenePrimitive *prim : node->primitives) {
-        addPrimitive(prim, transform, objects, baseDir);
+        addPrimitive(prim, transform, objects, baseDir, id);
     }
     for(CS123SceneNode *child : node->children) {
-        parseNode(child, transform, objects, baseDir);
+        parseNode(child, transform, objects, baseDir, id);
     }
 }
 
-void Scene::addPrimitive(CS123ScenePrimitive *prim, const glm::mat4x4 &transform, std::vector<Object *> *objects, const std::string &baseDir)
+void Scene::addPrimitive(CS123ScenePrimitive *prim, const glm::mat4x4 &transform, std::vector<Object *> *objects, const std::string &baseDir, int &id)
 {
     std::vector<Mesh*> objs;
     switch(prim->type) {
     case PrimitiveType::PRIMITIVE_MESH:
         std::cout << "Loading mesh " << prim->meshfile << std::endl;
-        objs = loadMesh(prim->meshfile, prim->material, transform, baseDir);
+        objs = loadMesh(prim->meshfile, prim->material, transform, baseDir, id);
         objects->insert(objects->end(), std::begin(objs), std::end(objs));
         std::cout << "Done loading mesh" << std::endl;
         break;
@@ -222,7 +218,7 @@ void Scene::addPrimitive(CS123ScenePrimitive *prim, const glm::mat4x4 &transform
     }
 }
 
-std::vector<Mesh*> Scene::loadMesh(std::string filePath, const CS123SceneMaterial & material, const glm::mat4x4 &transform, const std::string &baseDir)
+std::vector<Mesh*> Scene::loadMesh(std::string filePath, const CS123SceneMaterial & material, const glm::mat4x4 &transform, const std::string &baseDir, int &id)
 {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -304,7 +300,8 @@ std::vector<Mesh*> Scene::loadMesh(std::string filePath, const CS123SceneMateria
         }
 
         Mesh *m = new Mesh;
-        m->init(vertices,
+        m->init(id++,
+                vertices,
                 normals,
                 uvs,
                 colors,

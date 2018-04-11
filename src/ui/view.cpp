@@ -89,6 +89,7 @@ void View::paintGL() {
 }
 
 void View::updateInputs(float dt) {
+    if (!m_scene) return;
 
     const float moveSpeed = 5.f;
     const float rotateSpeed = 100.f;
@@ -144,6 +145,9 @@ void View::tick() {
 void View::keyPressEvent(QKeyEvent *event) {
     m_keys[event->key()] = true;
 
+    if (event->key() == Qt::Key_Escape) {
+        QApplication::quit();
+    }
     if (event->key() == Qt::Key_Space) {
         if (m_scene) m_scene->pipeline();
     }

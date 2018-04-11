@@ -11,7 +11,7 @@ public:
              glm::vec3 n1, glm::vec3 n2, glm::vec3 n3,
              int index);
 
-    virtual void render() const {}
+    virtual void render(std::shared_ptr<CS123::GL::Shader> &, const bool) const {}
 
     virtual bool getIntersection(const Ray &ray, IntersectionInfo *intersection) const;
 
