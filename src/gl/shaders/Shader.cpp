@@ -9,6 +9,8 @@
 #include "gl/GLDebug.h"
 #include "gl/textures/Texture2D.h"
 
+namespace CS123 { namespace GL {
+
 Shader::Shader(const std::string &vertexSource, const std::string &fragmentSource)
 {
     createProgramID();
@@ -229,7 +231,7 @@ GLuint Shader::createVertexShaderFromSource(const std::string &source) {
 GLuint Shader::createShaderFromSource(const std::string &source, GLenum shaderType) {
     GLuint shaderHandle = glCreateShader(shaderType);
     compileShader(shaderHandle, source);
-    checkShaderCompilationStatus(shaderHandle);
+    CS123::GL::checkShaderCompilationStatus(shaderHandle);
     return shaderHandle;
 }
 
@@ -247,7 +249,7 @@ void Shader::deleteShaders(const std::vector<GLuint> &shaders) {
 
 void Shader::linkShaderProgram() {
     glLinkProgram(m_programID);
-    checkShaderLinkStatus(m_programID);
+    CS123::GL::checkShaderLinkStatus(m_programID);
 }
 
 void Shader::discoverShaderData() {
@@ -329,3 +331,5 @@ void Shader::addTexture(const std::string &name) {
 void Shader::addUniform(const std::string &name) {
     m_uniforms[name] = glGetUniformLocation(m_programID, name.c_str());
 }
+
+}}

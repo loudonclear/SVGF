@@ -20,6 +20,10 @@ class ResourceLoader
 {
 public:
     static std::string loadResourceFileToString(const std::string &resourcePath);
+    static GLuint createShaderProgram(const char * vertex_file_path,const char * fragment_file_path);
+
+private:
+    static GLuint createShader(GLenum shaderType, const char *filepath);
 };
 
 #endif // RESOURCELOADER_H

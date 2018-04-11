@@ -21,11 +21,13 @@
 
 using namespace std;
 using namespace std::chrono;
+using namespace CS123::GL;
 
 Scene::Scene(int width, int height) : width(width), height(height)
 {
     m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
-    m_defaultShader->setUniform("useLighting", false);
+    m_gBufferShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.vert"), ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.frag"));
+
     m_pathTracer = std::make_shared<PathTracer>(width, height, 1);
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
 
@@ -88,27 +90,27 @@ void Scene::trace() const {
 }
 
 void Scene::render() const {
-    m_defaultShader->bind();
-    m_defaultShader->setUniform("p", m_camera.getScaleMatrix());
-    m_defaultShader->setUniform("v", m_camera.getViewMatrix());
-
-    //std::cout << glm::to_string(m_camera.getLook()) << std::endl;
-
-    // TEST
-    for (Object *obj : *_objects) {
-        m_defaultShader->setUniform("m", obj->transform);
-        m_defaultShader->setUniform("ambient_color", glm::vec3(0.2f, 0.2f, 0.2f));
-        m_defaultShader->setUniform("diffuse_color", glm::vec3(0.2f, 0.2f, 0.2f));
-        obj->render();
-    }
-    std::cout<<"Tracing..." << std::endl;
-    trace();
-    std::cout<<"Done!" << std::endl;
-
-
     // Pipeline:
 
     // TODO: Render G-buffer and 1spp direct/indirect light
+
+    m_SVGFGBuffer->bind();
+    m_gBufferShader->bind();
+    m_gBufferShader->setUniform("projection", m_camera.getScaleMatrix());
+    m_gBufferShader->setUniform("view", m_camera.getViewMatrix());
+
+    for (Object *obj : *_objects) {
+        m_gBufferShader->setUniform("model", obj->transform);
+        obj->render();
+    }
+
+    m_gBufferShader->unbind();
+    m_SVGFGBuffer->unbind();
+
+//    std::cout<<"Tracing..." << std::endl;
+//    trace();
+//    std::cout<<"Done!" << std::endl;
+
 
     // TODO: Temporal shader
 
@@ -116,7 +118,6 @@ void Scene::render() const {
 
     // TODO: Post-processing
 
-    m_defaultShader->unbind();
 }
 
 void Scene::setBVH(const BVH &bvh)

@@ -8,6 +8,7 @@
 #include "gl/textures/Texture2D.h"
 #include "gl/textures/TextureParametersBuilder.h"
 
+using namespace CS123::GL;
 
 FBO::FBO(int numberOfColorAttachments, DEPTH_STENCIL_ATTACHMENT attachmentType, int width, int height,
          TextureParameters::WRAP_METHOD wrapMethod,
@@ -20,6 +21,7 @@ FBO::FBO(int numberOfColorAttachments, DEPTH_STENCIL_ATTACHMENT attachmentType, 
     glGenFramebuffers(1, &m_handle);
     bind();
     generateColorAttachments(numberOfColorAttachments, wrapMethod, filterMethod, type);
+
     generateDepthStencilAttachment();
 
     checkFramebufferStatus();
@@ -47,6 +49,7 @@ void FBO::generateDepthStencilAttachment() {
     switch(m_depthStencilAttachmentType) {
         case DEPTH_STENCIL_ATTACHMENT::DEPTH_ONLY:
             m_depthAttachment = std::make_unique<DepthBuffer>(m_width, m_height);
+
             glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_depthAttachment->id());
             break;
         case DEPTH_STENCIL_ATTACHMENT::DEPTH_STENCIL:
@@ -74,6 +77,7 @@ void FBO::generateColorAttachment(int i, TextureParameters::WRAP_METHOD wrapMeth
 
 void FBO::bind() {
     glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
+
     glViewport(0, 0, m_width, m_height);
 }
 

@@ -6,6 +6,8 @@
 #include <GL/glew.h>
 #include "gl/GLDebug.h"
 
+namespace CS123 { namespace GL {
+
 Texture::Texture() :
     m_handle(0)
 {
@@ -33,3 +35,5 @@ Texture::~Texture()
 unsigned int Texture::id() const {
     return m_handle;
 }
+
+}}

@@ -5,6 +5,7 @@
 
 #include "GL/glew.h"
 
+namespace CS123 { namespace GL {
 
 struct VBOAttribMarker {
     enum DATA_TYPE{ FLOAT = GL_FLOAT, INT = GL_INT, UNSIGNED_BYTE = GL_UNSIGNED_BYTE };
@@ -26,5 +27,7 @@ struct VBOAttribMarker {
     GLuint numElements;
     size_t offset;
 };
+
+}}
 
 #endif // VBOATTRIBMARKER_H

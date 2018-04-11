@@ -7,10 +7,10 @@ class SVGFGBuffer
 public:
     SVGFGBuffer(int width, int height);
 
-    inline void bind() const;
-    inline void unbind() const;
+    void bind() const;
+    void unbind() const;
 
-    inline void bindTextures() const;
+    void bindTextures() const;
 
 private:
     unsigned int gBuffer;

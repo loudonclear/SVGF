@@ -10,8 +10,12 @@
 #include "shape/mesh.h"
 
 class PathTracer;
-class Shader;
 class SVGFGBuffer;
+
+namespace CS123 { namespace GL {
+
+    class Shader;
+}}
 
 class Scene
 {
@@ -47,7 +51,7 @@ private:
 
     std::shared_ptr<SVGFGBuffer> m_SVGFGBuffer;
 
-    std::shared_ptr<Shader> m_defaultShader, m_waveletShader;
+    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_waveletShader;
 
 
     CS123SceneGlobalData m_globalData;

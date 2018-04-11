@@ -1,6 +1,7 @@
 #ifndef RENDERBUFFER_H
 #define RENDERBUFFER_H
 
+namespace CS123 { namespace GL {
 
 class RenderBuffer {
 public:
@@ -19,5 +20,7 @@ public:
 protected:
     unsigned int m_handle;
 };
+
+}}
 
 #endif // RENDERBUFFER_H

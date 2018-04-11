@@ -67,7 +67,8 @@ SOURCES += \
     src/util/util.cpp \
     src/gl/util/SVGFGBuffer.cpp \
     src/pathtracer/pathtracer.cpp \
-    src/gl/util/ResourceLoader.cpp
+    src/gl/util/ResourceLoader.cpp \
+    src/gl/util/openglshape.cpp
 
 
 HEADERS += \
@@ -111,13 +112,11 @@ HEADERS += \
     src/util/util.h \
     src/gl/util/SVGFGBuffer.h \
     src/pathtracer/pathtracer.h \
-    src/gl/util/ResourceLoader.h
+    src/gl/util/ResourceLoader.h \
+    src/gl/util/openglshape.h \
+    src/gl/util/sphere.h
 
 
-
-DEFINES += _USE_MATH_DEFINES
-DEFINES += TIXML_USE_STL
-DEFINES += GLM_SWIZZLE GLM_FORCE_RADIANS
 
 FORMS += src/ui/mainwindow.ui
 INCLUDEPATH += libs src src/ui libs/glm libs/glew-1.10.0/include
@@ -126,6 +125,8 @@ DEPENDPATH += libs src src/ui libs/glm libs/glew-1.10.0/include
 DEFINES += _USE_MATH_DEFINES
 DEFINES += TIXML_USE_STL
 DEFINES += GLM_SWIZZLE GLM_FORCE_RADIANS
+OTHER_FILES += \
+    shaders/*
 
 RESOURCES += \
     resources.qrc
@@ -175,4 +176,5 @@ RESOURCES += \
 
 DISTFILES += \
     src/BVH/License.txt \
-    src/BVH/README
+    src/BVH/README \
+    shaders/gbuffer.fsh

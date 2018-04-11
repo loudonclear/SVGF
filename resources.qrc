@@ -4,5 +4,7 @@
         <file>shaders/shader.vert</file>
         <file>shaders/wavelet.frag</file>
         <file>shaders/wavelet.vert</file>
+        <file>shaders/gbuffer.frag</file>
+        <file>shaders/gbuffer.vert</file>
     </qresource>
 </RCC>

@@ -2,6 +2,7 @@
 
 #include "GL/glew.h"
 
+using namespace CS123::GL;
 
 DepthBuffer::DepthBuffer(int width, int height) :
     m_width(width),
