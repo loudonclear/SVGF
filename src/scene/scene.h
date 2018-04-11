@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "BVH/BVH.h"
-#include "basiccamera.h"
+#include "QuaternionCamera.h"
 #include "util/CS123SceneData.h"
 #include "shape/mesh.h"
 
@@ -25,15 +25,16 @@ public:
 
     static std::unique_ptr<Scene> load(QString filename, int width, int height);
 
-    void trace() const;
-    void render() const;
+    void trace();
+    void render();
+    void pipeline();
 
     void setBVH(const BVH &bvh);
     const BVH& getBVH() const;
 
-    const BasicCamera& getCamera() const;
+    const QuaternionCamera& getCamera() const;
 
-    void setCamera(const BasicCamera& camera);
+    void setCamera(const QuaternionCamera &camera);
     void setGlobalData(const CS123SceneGlobalData& data);
     void addLight(const CS123SceneLightData& data);
 
@@ -46,13 +47,13 @@ private:
     BVH *m_bvh;
     std::vector<Object *> *_objects;
 
-    BasicCamera m_camera;
+    QuaternionCamera m_camera;
     std::shared_ptr<PathTracer> m_pathTracer;
 
     std::shared_ptr<SVGFGBuffer> m_SVGFGBuffer;
 
     std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_waveletShader;
-
+    bool m_pipeline;
 
     CS123SceneGlobalData m_globalData;
     std::vector<CS123SceneLightData> m_lights;

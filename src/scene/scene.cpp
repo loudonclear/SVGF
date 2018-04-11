@@ -3,6 +3,7 @@
 #include "gl/shaders/Shader.h"
 #include "gl/util/ResourceLoader.h"
 #include "gl/util/SVGFGBuffer.h"
+#include "gl/util/FullScreenQuad.h"
 #include "pathtracer/pathtracer.h"
 #include "util/CS123Common.h"
 #include "util/CS123XmlSceneParser.h"
@@ -23,7 +24,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace CS123::GL;
 
-Scene::Scene(int width, int height) : width(width), height(height)
+Scene::Scene(int width, int height) : width(width), height(height), m_pipeline(false)
 {
     m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
     m_gBufferShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.vert"), ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.frag"));
@@ -47,6 +48,10 @@ Scene::~Scene()
     delete lights;
 }
 
+void Scene::pipeline() {
+    m_pipeline = true;
+}
+
 std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
   CS123XmlSceneParser parser(filename.toStdString());
   if (!parser.parse()) {
@@ -54,9 +59,9 @@ std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
   }
   CS123SceneCameraData cameraData;
   parser.getCameraData(cameraData);
-  BasicCamera camera(cameraData.pos.xyz(), cameraData.look.xyz(),
+  QuaternionCamera camera(cameraData.pos.xyz(), cameraData.look.xyz(),
                      cameraData.up.xyz(), cameraData.heightAngle,
-                     (float)width / (float)height);
+                     (float)width / (float)height, 0.1f, 100.f);
   std::unique_ptr <Scene> scene = std::make_unique<Scene>(width, height);
   scene->setCamera(camera);
 
@@ -79,7 +84,7 @@ std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
   return scene;
 }
 
-void Scene::trace() const {
+void Scene::trace() {
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     auto buffers = m_pathTracer->traceScene(*this);
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
@@ -89,34 +94,60 @@ void Scene::trace() const {
     save_render_buffers(buffers);
 }
 
-void Scene::render() const {
+void Scene::render() {
+
     // Pipeline:
+    if (m_pipeline) {
+        // TODO: Render G-buffer and 1spp direct/indirect light
 
-    // TODO: Render G-buffer and 1spp direct/indirect light
+        //m_gBufferShader->bind();
+        //m_SVGFGBuffer->bind();
 
-    m_SVGFGBuffer->bind();
-    m_gBufferShader->bind();
-    m_gBufferShader->setUniform("projection", m_camera.getScaleMatrix());
-    m_gBufferShader->setUniform("view", m_camera.getViewMatrix());
+        //    m_gBufferShader->unbind();
+        //    m_SVGFGBuffer->unbind();
 
-    for (Object *obj : *_objects) {
-        m_gBufferShader->setUniform("model", obj->transform);
-        obj->render();
+        //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            //m_SVGFGBuffer->bindTextures();
+
+        //    FullScreenQuad fsq;
+        //    fsq.draw();
+
+
+        //    std::cout<<"Tracing..." << std::endl;
+        trace();
+        //    std::cout<<"Done!" << std::endl;
+
+
+        // TODO: Temporal shader
+
+        // TODO: Wavelet filter
+
+        // TODO: Post-processing
+
+        m_pipeline = false;
+    } else {
+        // Visualization
+        m_defaultShader->bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        m_defaultShader->setUniform("p", m_camera.getProjectionMatrix());
+        m_defaultShader->setUniform("v", m_camera.getViewMatrix());
+
+        m_defaultShader->setUniform("ambient_color", glm::vec3(0.2f, 0.2f, 0.2f));
+        m_defaultShader->setUniform("diffuse_color", glm::vec3(0.2f, 0.2f, 0.2f));
+        m_defaultShader->setUniform("specular_color", glm::vec3(0.2f, 0.2f, 0.2f));
+        m_defaultShader->setUniform("shininess", 10.f);
+
+        m_defaultShader->setUniform("light_dir", glm::vec3(0, 0, -1.f));
+        m_defaultShader->setUniform("light_color", glm::vec3(0.2f, 0.2f, 0.2f));
+
+        for (Object *obj : *_objects) {
+            m_defaultShader->setUniform("m", obj->transform);
+            obj->render();
+        }
+        m_defaultShader->unbind();
     }
-
-    m_gBufferShader->unbind();
-    m_SVGFGBuffer->unbind();
-
-//    std::cout<<"Tracing..." << std::endl;
-//    trace();
-//    std::cout<<"Done!" << std::endl;
-
-
-    // TODO: Temporal shader
-
-    // TODO: Wavelet filter
-
-    // TODO: Post-processing
 
 }
 
@@ -304,12 +335,12 @@ const BVH &Scene::getBVH() const
     return *m_bvh;
 }
 
-const BasicCamera &Scene::getCamera() const
+const QuaternionCamera &Scene::getCamera() const
 {
     return m_camera;
 }
 
-void Scene::setCamera(const BasicCamera &camera)
+void Scene::setCamera(const QuaternionCamera &camera)
 {
     m_camera = camera;
 }

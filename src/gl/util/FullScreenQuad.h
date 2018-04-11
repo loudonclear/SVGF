@@ -14,7 +14,7 @@ public:
     void draw();
 
 private:
-    std::unique_ptr<VAO> m_vao;
+    std::shared_ptr<VAO> m_vao;
 };
 
 }}

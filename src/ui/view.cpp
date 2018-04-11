@@ -1,6 +1,7 @@
 #include "view.h"
 
 #include "scene/scene.h"
+#include "scene/QuaternionCamera.h"
 #include "viewformat.h"
 
 #include <QApplication>
@@ -51,8 +52,8 @@ void View::initializeGL() {
     std::cout << "Using GLEW " <<  glewGetString( GLEW_VERSION ) << std::endl;
 
     glEnable(GL_DEPTH_TEST);
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
+    //glEnable(GL_CULL_FACE);
+    //glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
     glClearColor(0.f, 0.f, 0.f, 1.f);
 
@@ -80,25 +81,59 @@ void View::resizeGL(int w, int h) {
 }
 
 void View::paintGL() {
-   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     /* Render the selected scene */
     if (m_scene) {
         m_scene->render();
     }
-
 }
 
-void View::updateInputs() {
+void View::updateInputs(float dt) {
 
-    // TODO: Handle Input
+    const float moveSpeed = 5.f;
+    const float rotateSpeed = 100.f;
+
+    QuaternionCamera c = m_scene->getCamera();
+    if (m_keys[Qt::Key_A]) {
+        c.translate(-c.getRight() * moveSpeed * dt);
+    }
+    if (m_keys[Qt::Key_D]) {
+        c.translate(c.getRight() * moveSpeed * dt);
+    }
+    if (m_keys[Qt::Key_W]) {
+        c.translate(c.getLook() * moveSpeed * dt);
+    }
+    if (m_keys[Qt::Key_S]) {
+        c.translate(-c.getLook() * moveSpeed * dt);
+    }
+    if (m_keys[Qt::Key_Q]) {
+        c.translate(-c.getUp() * moveSpeed * dt);
+    }
+    if (m_keys[Qt::Key_E]) {
+        c.translate(c.getUp() * moveSpeed * dt);
+    }
+
+
+    if (m_keys[Qt::Key_Left]) {
+        c.rotate(rotateSpeed * dt, glm::vec3(0, 1, 0));
+    }
+    if (m_keys[Qt::Key_Right]) {
+        c.rotate(-rotateSpeed * dt, glm::vec3(0, 1, 0));
+    }
+    if (m_keys[Qt::Key_Up]) {
+        c.rotate(rotateSpeed * dt, glm::vec3(1, 0, 0));
+    }
+    if (m_keys[Qt::Key_Down]) {
+        c.rotate(-rotateSpeed * dt, glm::vec3(1, 0, 0));
+    }
+    m_scene->setCamera(c);
 }
 
 void View::tick() {
     /* Get the number of seconds since the last tick (variable update rate) */
-    //float dt = m_time.restart() * 0.001f;
+    float dt = m_time.restart() * 0.001f;
 
-    updateInputs();
+    updateInputs(dt);
 
     /* Flag this view for repainting (Qt will call paintGL() soon after) */
     update();
@@ -108,6 +143,10 @@ void View::tick() {
 /* Keyboard events */
 void View::keyPressEvent(QKeyEvent *event) {
     m_keys[event->key()] = true;
+
+    if (event->key() == Qt::Key_Space) {
+        if (m_scene) m_scene->pipeline();
+    }
 }
 void View::keyReleaseEvent(QKeyEvent *event) {
     m_keys[event->key()] = false;

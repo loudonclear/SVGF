@@ -5,6 +5,7 @@
 #include "util/CS123Common.h"
 
 #include <QImage>
+#include <memory>
 
 // Class for representing a set of render buffers together, and accessing them.
 class RenderBuffers {
@@ -126,7 +127,7 @@ void toneMapSimple(QRgb *imageData, glm::vec3 *intensityValues,
 
 // Saves all buffers, and a combined version, in the given location
 void save_render_buffers(const RenderBuffers &buffs,
-                         std::string directory = "../res/results",
+                         std::string directory = "./res/results/",
                          std::string name = "output");
 
 // Save a single image
