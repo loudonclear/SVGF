@@ -20,7 +20,7 @@ namespace CS123 { namespace GL {
 class Scene
 {
 public:
-    Scene(int width, int height);
+    Scene(int width, int height, unsigned int samples = 1);
     virtual ~Scene();
 
     static std::unique_ptr<Scene> load(QString filename, int width, int height);
@@ -36,6 +36,9 @@ public:
     void setCamera(const BasicCamera& camera);
     void setGlobalData(const CS123SceneGlobalData& data);
     void addLight(const CS123SceneLightData& data);
+
+    PathTracer &pathTracer() { return *m_pathTracer; }
+    const PathTracer &pathTracer() const { return *m_pathTracer; }
 
     //const std::vector<CS123SceneLightData>& getLights();
     std::vector<Object *> *lights;

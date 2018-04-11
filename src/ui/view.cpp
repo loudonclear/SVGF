@@ -1,5 +1,6 @@
 #include "view.h"
 
+#include "pathtracer/pathtracer.h"
 #include "scene/scene.h"
 #include "viewformat.h"
 
@@ -32,6 +33,7 @@ View::View(QWidget *parent)
   m_cli_parser.setApplicationDescription("Path tracer with render denoising using edge-avoiding wavelets.");
   m_cli_parser.addHelpOption();
   m_cli_parser.addPositionalArgument("scene", ".xml scene file to load for simulation");
+  m_cli_parser.addOption({{"s", "samples"}, "Number of pathtracing samples", "samples"});
   m_cli_parser.process(*QApplication::instance());
 }
 
@@ -72,6 +74,7 @@ void View::initializeGL() {
           std::cerr << "Error parsing scene file "
                     << absolute_scene_path.toStdString() << std::endl;
         }
+        m_scene->pathTracer().numSamples(m_cli_parser.value("samples").toUInt());
     }
 }
 

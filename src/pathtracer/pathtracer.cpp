@@ -1,4 +1,6 @@
 #include "pathtracer.h"
+#include "BVH/Ray.h"
+#include "scene/scene.h"
 #include "util/CS123Common.h"
 
 #include <glm/gtx/norm.hpp>
@@ -34,7 +36,7 @@ protected:
 };
 
 
-PathTracer::PathTracer(int width, int height, int numSamples)
+PathTracer::PathTracer(int width, int height, unsigned int numSamples)
     : m_width(width), m_height(height), m_numSamples(numSamples)
 {
 }
@@ -78,7 +80,7 @@ void PathTracer::render(const Scene& scene, RenderBuffers& buffs, glm::mat4x4 &i
 RenderBuffers::Element PathTracer::tracePixel(int x, int y, const Scene& scene, const glm::mat4x4 &invViewMatrix) {
     glm::vec3 p(0, 0, 0);
     auto res = RenderBuffers::Element::zero();
-    for (int s = 0; s < m_numSamples; s++) {
+    for (unsigned int s = 0; s < m_numSamples; s++) {
         glm::vec3 d((2.f * (x + random()) / m_width) - 1, 1 - (2.f * (y + random()) / m_height), -1);
         d = glm::normalize(d);
 

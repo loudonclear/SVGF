@@ -23,12 +23,12 @@ using namespace std;
 using namespace std::chrono;
 using namespace CS123::GL;
 
-Scene::Scene(int width, int height) : width(width), height(height)
+Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height)
 {
     m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
     m_gBufferShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.vert"), ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.frag"));
 
-    m_pathTracer = std::make_shared<PathTracer>(width, height, 1);
+    m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
 
     // Currently just horizontal
@@ -107,9 +107,9 @@ void Scene::render() const {
     m_gBufferShader->unbind();
     m_SVGFGBuffer->unbind();
 
-//    std::cout<<"Tracing..." << std::endl;
-//    trace();
-//    std::cout<<"Done!" << std::endl;
+   std::cout<<"Tracing..." << std::endl;
+   trace();
+   std::cout<<"Done!" << std::endl;
 
 
     // TODO: Temporal shader
