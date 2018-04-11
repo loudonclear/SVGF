@@ -1,21 +1,23 @@
 #include "scene.h"
 
 #include "gl/shaders/Shader.h"
-#include <util/CS123XmlSceneParser.h>
-#include <util/CS123Common.h>
+#include "gl/util/ResourceLoader.h"
+#include "gl/util/SVGFGBuffer.h"
+#include "pathtracer/pathtracer.h"
+#include "util/CS123Common.h"
+#include "util/CS123XmlSceneParser.h"
+#include "util/util.h"
+
+#include "glm/gtx/transform.hpp"
+#include "glm/gtx/string_cast.hpp"
+
 #include <QImage>
+
 #include <iostream>
 #include <chrono>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include "util/tiny_obj_loader.h"
-
-#include "glm/gtx/transform.hpp"
-#include "glm/gtx/string_cast.hpp"
-
-#include "pathtracer/pathtracer.h"
-#include "gl/util/ResourceLoader.h"
-#include "gl/util/SVGFGBuffer.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -24,10 +26,7 @@ Scene::Scene(int width, int height) : width(width), height(height)
 {
     m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
     m_defaultShader->setUniform("useLighting", false);
-
-
     m_pathTracer = std::make_shared<PathTracer>(width, height, 1);
-
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
 
     // Currently just horizontal
@@ -79,25 +78,13 @@ std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
 }
 
 void Scene::trace() const {
-    QImage image(width, height, QImage::Format_RGB32);
-    QRgb *data = reinterpret_cast<QRgb *>(image.bits());
-
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
-    m_pathTracer->traceScene(data, *this);
+    auto buffers = m_pathTracer->traceScene(*this);
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
     float duration = duration_cast<milliseconds>( t2 - t1 ).count() / 1000.0;
-    cout << "Scene took " << duration << " seconds to render." << endl;
-
-    bool success = image.save(QFileInfo("../res/results/output.png").absoluteFilePath());
-    if(!success) {
-        success = image.save("../res/results/output.png", "PNG");
-    }
-    if(success) {
-        cout << "Wrote rendered image " << endl;
-    } else {
-        cerr << "Error: failed to write image " << endl;
-    }
+    std::cout << "Scene took " << duration << " seconds to render." << std::endl;
+    save_render_buffers(buffers);
 }
 
 void Scene::render() const {

@@ -1,7 +1,8 @@
 #include "pathtracer.h"
+#include "util/CS123Common.h"
 
-#include <util/CS123Common.h>
 #include <glm/gtx/norm.hpp>
+#include <glm/glm.hpp>
 
 #include <QRunnable>
 #include <QThreadPool>
@@ -11,7 +12,7 @@
 
 const int seed = 1;
 
-#define clamp(x, min, max) { if (x < min) x = min; if (x > max) x = max; }
+#define CLAMP(x, min, max) { if (x < min) x = min; if (x > max) x = max; }
 
 std::default_random_engine rnd(seed);
 std::uniform_real_distribution<float> dis(0, 1);
@@ -20,21 +21,16 @@ float PathTracer::random() {
     return dis(rnd);
 }
 
-inline unsigned char REAL2byte(REAL f) {
-    int i = static_cast<int>((f * 255.0 + 0.5));
-    return (i < 0) ? 0 : (i > 255) ? 255 : i;
-}
-
 class RenderTask : public QRunnable {
 public:
-    RenderTask(PathTracer *tracer, const Scene& scene, glm::vec3 *intensityValues, glm::mat4x4 &invViewMat, int x0, int y0, int x1, int y1) : m_tracer(tracer), m_scene(scene), m_intensityValues(intensityValues), m_invViewMat(invViewMat), m_x0(x0), m_y0(y0), m_x1(x1), m_y1(y1) {}
+    RenderTask(PathTracer *tracer, const Scene& scene, RenderBuffers *buffs, glm::mat4x4 &invViewMat, int x0, int y0, int x1, int y1) : m_tracer(tracer), m_scene(scene), m_buffs(buffs), m_invViewMat(invViewMat), m_x0(x0), m_y0(y0), m_x1(x1), m_y1(y1) {}
     PathTracer *m_tracer;
     const Scene m_scene;
-    glm::vec3 *m_intensityValues;
+    RenderBuffers *m_buffs;
     glm::mat4x4 m_invViewMat;
     int m_x0, m_y0, m_x1, m_y1;
 protected:
-    virtual void run() { m_tracer->render(m_scene, m_intensityValues, m_invViewMat, m_x0, m_y0, m_x1, m_y1); }
+    virtual void run() { m_tracer->render(m_scene, *m_buffs, m_invViewMat, m_x0, m_y0, m_x1, m_y1); }
 };
 
 
@@ -43,8 +39,8 @@ PathTracer::PathTracer(int width, int height, int numSamples)
 {
 }
 
-void PathTracer::traceScene(QRgb *imageData, const Scene& scene) {
-    glm::vec3 *intensityValues = new glm::vec3[m_width * m_height];
+RenderBuffers PathTracer::traceScene(const Scene& scene) {
+    RenderBuffers output_buffs(m_width, m_height);
     glm::mat4x4 invViewMat = glm::inverse(scene.getCamera().getScaleMatrix() * scene.getCamera().getViewMatrix());
 
     QThreadPool pool;
@@ -56,36 +52,32 @@ void PathTracer::traceScene(QRgb *imageData, const Scene& scene) {
 
     for (int block = 0; block < threads - 1; block++) {
         int newYOffset = yOffset + yBlockSize;
-        RenderTask *rt = new RenderTask(this, scene, intensityValues, invViewMat, 0, yOffset, m_width, newYOffset);
+        RenderTask *rt = new RenderTask(this, scene, &output_buffs, invViewMat, 0, yOffset, m_width, newYOffset);
         rt->setAutoDelete(false);
         pool.start(rt);
         yOffset = newYOffset;
     }
-    RenderTask *rt = new RenderTask(this, scene, intensityValues, invViewMat, 0, yOffset, m_width, m_height);
+    RenderTask *rt = new RenderTask(this, scene, &output_buffs, invViewMat, 0, yOffset, m_width, m_height);
     rt->setAutoDelete(false);
     pool.start(rt);
 
     pool.waitForDone();
 
-    toneMap(imageData, intensityValues);
-    delete[] intensityValues;
+    return output_buffs;
 }
 
-void PathTracer::render(const Scene& scene, glm::vec3 *intensityValues, glm::mat4x4 &invViewMat, int x0, int y0, int x1, int y1) {
+void PathTracer::render(const Scene& scene, RenderBuffers& buffs, glm::mat4x4 &invViewMat, int x0, int y0, int x1, int y1) {
     for (int y = y0; y < y1; y++) {
         for (int x = x0; x < x1; x++) {
             int offset = x + (y * m_width);
-            intensityValues[offset] = tracePixel(x, y, scene, invViewMat);
+            buffs[offset] = tracePixel(x, y, scene, invViewMat);
         }
     }
 }
 
-glm::vec3 PathTracer::tracePixel(int x, int y, const Scene& scene, const glm::mat4x4 &invViewMatrix) {
+RenderBuffers::Element PathTracer::tracePixel(int x, int y, const Scene& scene, const glm::mat4x4 &invViewMatrix) {
     glm::vec3 p(0, 0, 0);
-
-    //BasicCamera cam = scene.getCamera();
-
-    glm::vec3 res(0, 0, 0);
+    auto res = RenderBuffers::Element::zero();
     for (int s = 0; s < m_numSamples; s++) {
         glm::vec3 d((2.f * (x + random()) / m_width) - 1, 1 - (2.f * (y + random()) / m_height), -1);
         d = glm::normalize(d);
@@ -170,7 +162,7 @@ glm::vec3 directLighting(const glm::vec3& hit, const glm::vec3& normal, const Sc
     return intensity;
 }
 
-glm::vec3 PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
+RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
     glm::vec3 l(0, 0, 0);
 
     IntersectionInfo i;
@@ -180,10 +172,12 @@ glm::vec3 PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
         const tinyobj::material_t& mat = m->getMaterial(t->getIndex()); // Get the material of the triangle from the mesh
 
         if (m->isLight && depth == 0) {
-            return glm::vec3(mat.emission[0], mat.emission[1], mat.emission[2]);
+            auto elem = RenderBuffers::Element::zero();
+            elem.m_albedo = glm::vec3(mat.emission[0], mat.emission[1], mat.emission[2]);
+            elem.m_direct = glm::vec3(1.0f, 1.0f, 1.0f);
+            elem.m_full = elem.m_albedo;
+            return elem;
         }
-
-
         const glm::vec3 hit = i.hit;
         const glm::vec3 normal = glm::normalize((m->inverseNormalTransform * glm::vec4(t->getNormal(i), 0)).xyz());
         const bool inward = glm::dot(normal, r.d) < 0;
@@ -198,17 +192,25 @@ glm::vec3 PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
                 cosineSampleHemisphere(normal, wi, pdf);
 
                 const glm::vec3 directIllumination = directLighting(hit, normal, scene);
-                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1);
+                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1).m_full;
 
                 const glm::vec3 brdf = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]) / ((float)M_PI);
 
+                const float illum_scale = glm::dot(wi, normal) / (pdf * pdf_rr);
                 const glm::vec3 illum = (directIllumination + indirectIllumination) * glm::dot(wi, normal) / (pdf * pdf_rr);
 
-                l += glm::vec3(brdf[0]*illum[0], brdf[1]*illum[1], brdf[2]*illum[2]);
+                // TODO still using old code for full, for debugarino
+                auto elem = RenderBuffers::Element::zero();
+                elem.m_albedo = brdf;
+                elem.m_direct = directIllumination * illum_scale;
+                elem.m_indirect = indirectIllumination * illum_scale;
+                elem.m_full =  glm::vec3(brdf[0]*illum[0], brdf[1]*illum[1], brdf[2]*illum[2]);
+                return elem;
             }
 
         } else if (mat.illum == 3) { // Glossy specular
-            const float pdf_rr = 0.95f;//std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
+            const float pdf_rr = 0.95f;
+            //std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
 
             if (random() < pdf_rr) {
                 glm::vec3 wi;
@@ -223,9 +225,9 @@ glm::vec3 PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
 //                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1);
 
 //                glm::vec3 brdf = glm::vec3(mat.specular) * (mat.shininess + 2.f) * pow(glm::dot(refl, -r.d), mat.shininess) / (2.f * M_PI);
-//                clamp(brdf[0], 0, 1);
-//                clamp(brdf[1], 0, 1);
-//                clamp(brdf[2], 0, 1);
+//                CLAMP(brdf[0], 0, 1);
+//                CLAMP(brdf[1], 0, 1);
+//                CLAMP(brdf[2], 0, 1);
 
 //                const glm::vec3 illum = (directIllumination + indirectIllumination) * glm::dot(wi, normal) / (pdf * pdf_rr);
 
@@ -241,8 +243,6 @@ glm::vec3 PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
                 float ndotwi = glm::dot(wi, normal);
                 float ndotwo = glm::dot(wo, normal);
                 float ndoth = glm::dot(h, normal);
-
-
                 float d = 1.f / (M_PI*m*m*pow(ndoth, 4)) * std::exp((ndoth*ndoth - 1)/(m*m*ndoth*ndoth));
 
                 float fterm = std::pow(1 - widoth, 5);
@@ -250,14 +250,19 @@ glm::vec3 PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
                 float g = std::min(1.f, std::min(2*ndoth*ndotwo / wodoth, 2*ndoth*ndotwi / wodoth));
 
                 const glm::vec3 directIllumination = directLighting(hit, normal, scene);
-                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1);
+                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1).m_full;
 
                 //pdf included
                 glm::vec3 brdf = ((float) M_PI) * d*g*f / (2.f*ndotwo);
 
                 const glm::vec3 illum = (directIllumination + indirectIllumination) / (pdf_rr);
-
-                l += glm::vec3(brdf[0]*illum[0], brdf[1]*illum[1], brdf[2]*illum[2]);
+                // TODO m_full
+                auto elem = RenderBuffers::Element::zero();
+                elem.m_albedo = brdf;
+                elem.m_direct = directIllumination / pdf_rr;
+                elem.m_indirect = indirectIllumination / pdf_rr;
+                elem.m_full = glm::vec3(brdf[0]*illum[0], brdf[1]*illum[1], brdf[2]*illum[2]);
+                return elem;
             }
 
         } else if (mat.illum == 5) { // Perfect specular
@@ -265,7 +270,14 @@ glm::vec3 PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
 
             if (random() < pdf_rr) {
                 const glm::vec3 refl = glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
-                l += traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, 0) / pdf_rr;
+                // TODO m_full
+                auto elem = RenderBuffers::Element::zero();
+                // TODO colored mirrors or nah?
+                // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
+                elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
+                elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, 0).m_full / pdf_rr;
+                elem.m_full = elem.m_albedo * elem.m_indirect;
+                return elem;
             }
 
         } else if (mat.illum == 7) { // Refraction
@@ -281,8 +293,13 @@ glm::vec3 PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
                 const float costheta = glm::dot(r.d, sn);
                 const float radicand = 1.f - ratio * ratio * (1.f - costheta*costheta);
 
+                // TODO m_full
+                auto elem = RenderBuffers::Element::zero();
+                // TODO colored mirrors or nah?
+                // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
+                elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
                 if (radicand < 0) {
-                    l += traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, 0) / pdf_rr;
+                  elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, 0).m_full / pdf_rr;
                 } else {
                     glm::vec3 refr;
                     if (inward) {
@@ -293,32 +310,16 @@ glm::vec3 PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
 
                     const float R0 = (nt - ni) * (nt - ni) / ((nt + ni) * (nt + ni));
                     const float Rtheta = R0 + (1.f - R0) * std::pow(1.f - (inward ? -costheta : glm::dot(refr, normal)), 5);
-
                     if (random() < Rtheta) {
-                        l += traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, 0) / pdf_rr;
+                        elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, 0).m_full / pdf_rr;
                     } else {
-                        l += traceRay(Ray(hit + FLOAT_EPSILON * refr, refr), scene, 0) / pdf_rr;
+                        elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refr, refr), scene, 0).m_full / pdf_rr;
                     }
-
                 }
+                elem.m_full = elem.m_albedo * elem.m_indirect;
+                return elem;
             }
-
-        }
-
-    }
-
-    return l;
-}
-
-// TODO: Remove
-void PathTracer::toneMap(QRgb *imageData, glm::vec3 *intensityValues) {
-    for(int y = 0; y < m_height; ++y) {
-        for(int x = 0; x < m_width; ++x) {
-            int offset = x + (y * m_width);
-            glm::vec3 intensityValue = intensityValues[offset];
-            imageData[offset] = qRgb(REAL2byte(intensityValue.x / (intensityValue.x + 1.f)),
-                                     REAL2byte(intensityValue.y / (intensityValue.y + 1.f)),
-                                     REAL2byte(intensityValue.z / (intensityValue.z + 1.f)));
         }
     }
+    return RenderBuffers::Element::zero();
 }

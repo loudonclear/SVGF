@@ -1,8 +1,13 @@
 #include <QApplication>
 #include "src/ui/mainwindow.h"
 
+#include <cstdlib>
+#include <ctime>
+
 int main(int argc, char *argv[])
 {
+    std::srand(std::time(0));
+
     QApplication app(argc, argv);
     MainWindow w;
     bool startFullscreen = false;
