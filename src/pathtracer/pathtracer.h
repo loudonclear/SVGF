@@ -28,7 +28,7 @@ private:
 
 
   RenderBuffers::Element tracePixel(int x, int y, const Scene &scene, const glm::mat4x4 &invViewMatrix);
-  RenderBuffers::Element traceRay(const Ray& r, const Scene &scene, int depth);
+RenderBuffers::Element traceRay(const Ray& r, const Scene &scene, int depth, bool show_lights = true);
 };
 
 #endif // PATHTRACER_H

@@ -164,8 +164,11 @@ glm::vec3 directLighting(const glm::vec3& hit, const glm::vec3& normal, const Sc
     return intensity;
 }
 
-RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, int depth) {
-    glm::vec3 l(0, 0, 0);
+RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, int depth, bool show_lights) {
+  if(depth > 100){
+    return RenderBuffers::Element::zero();
+  }
+  glm::vec3 l(0, 0, 0);
 
     IntersectionInfo i;
     if(scene.getBVH().getIntersection(r, &i, false)) {
@@ -173,7 +176,7 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
         const Triangle *t = static_cast<const Triangle *>(i.data); // Get the triangle in the mesh that was intersected
         const tinyobj::material_t& mat = m->getMaterial(t->getIndex()); // Get the material of the triangle from the mesh
 
-        if (m->isLight && depth == 0) {
+        if (m->isLight && show_lights) {
             auto elem = RenderBuffers::Element::zero();
             elem.m_albedo = glm::vec3(mat.emission[0], mat.emission[1], mat.emission[2]);
             elem.m_direct = glm::vec3(1.0f, 1.0f, 1.0f);
@@ -194,7 +197,7 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                 cosineSampleHemisphere(normal, wi, pdf);
 
                 const glm::vec3 directIllumination = directLighting(hit, normal, scene);
-                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1).m_full;
+                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1, false).m_full;
 
                 const glm::vec3 brdf = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]) / ((float)M_PI);
 
@@ -224,7 +227,7 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
 
 //                const glm::vec3 directIllumination = directLighting(hit, normal, scene);
 
-//                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1);
+//                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1, false);
 
 //                glm::vec3 brdf = glm::vec3(mat.specular) * (mat.shininess + 2.f) * pow(glm::dot(refl, -r.d), mat.shininess) / (2.f * M_PI);
 //                CLAMP(brdf[0], 0, 1);
@@ -252,7 +255,7 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                 float g = std::min(1.f, std::min(2*ndoth*ndotwo / wodoth, 2*ndoth*ndotwi / wodoth));
 
                 const glm::vec3 directIllumination = directLighting(hit, normal, scene);
-                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1).m_full;
+                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1, false).m_full;
 
                 //pdf included
                 glm::vec3 brdf = ((float) M_PI) * d*g*f / (2.f*ndotwo);
@@ -277,7 +280,7 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                 // TODO colored mirrors or nah?
                 // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
                 elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
-                elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, 0).m_full / pdf_rr;
+                elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth+1, true).m_full / pdf_rr;
                 elem.m_full = elem.m_albedo * elem.m_indirect;
                 return elem;
             }
@@ -301,7 +304,7 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                 // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
                 elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
                 if (radicand < 0) {
-                  elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, 0).m_full / pdf_rr;
+                  elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true).m_full / pdf_rr;
                 } else {
                     glm::vec3 refr;
                     if (inward) {
@@ -313,9 +316,9 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                     const float R0 = (nt - ni) * (nt - ni) / ((nt + ni) * (nt + ni));
                     const float Rtheta = R0 + (1.f - R0) * std::pow(1.f - (inward ? -costheta : glm::dot(refr, normal)), 5);
                     if (random() < Rtheta) {
-                        elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, 0).m_full / pdf_rr;
+                      elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true).m_full / pdf_rr;
                     } else {
-                        elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refr, refr), scene, 0).m_full / pdf_rr;
+                      elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refr, refr), scene, depth + 1, true).m_full / pdf_rr;
                     }
                 }
                 elem.m_full = elem.m_albedo * elem.m_indirect;
