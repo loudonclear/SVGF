@@ -26,8 +26,10 @@ using namespace CS123::GL;
 
 Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height), m_pipeline(false)
 {
+    m_testShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/test.vert"), ResourceLoader::loadResourceFileToString(":/shaders/test.frag"));
     m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
     m_gBufferShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.vert"), ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.frag"));
+    m_temporalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/temporal.vert"), ResourceLoader::loadResourceFileToString(":/shaders/temporal.frag"));
     m_waveletShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/wavelet.vert"), ResourceLoader::loadResourceFileToString(":/shaders/wavelet.frag"));
 
     m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
@@ -93,37 +95,112 @@ void Scene::trace() {
     save_render_buffers(buffers);
 }
 
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+             1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+             1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
+
 void Scene::render() {
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Pipeline:
     if (m_pipeline) {
-        // TODO: Render G-buffer and 1spp direct/indirect light
+        // G-buffer
+        // INPUT: scene
+        // OUTPUT: depth, normals, mesh/mat ids, motion vectors
 
-        m_gBufferShader->bind();
-        m_SVGFGBuffer->bind();
+//        m_SVGFGBuffer->bind();
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        m_gBufferShader->setUniform("p", m_camera.getProjectionMatrix());
-        m_gBufferShader->setUniform("v", m_camera.getViewMatrix());
+//        m_gBufferShader->bind();
+//        m_gBufferShader->setUniform("p", m_camera.getProjectionMatrix());
+//        m_gBufferShader->setUniform("v", m_camera.getViewMatrix());
 
-        for (Object *obj : *_objects) {
-            m_gBufferShader->setUniform("m", obj->transform);
-            obj->render(m_defaultShader, m_pipeline);
-        }
+//        for (Object *obj : *_objects) {
+//            m_gBufferShader->setUniform("m", obj->transform);
+//            obj->render(m_gBufferShader, m_pipeline);
+//        }
 
-        m_SVGFGBuffer->unbind();
-        m_gBufferShader->unbind();
+//        m_gBufferShader->unbind();
+//        m_SVGFGBuffer->unbind();
 
-        std::cout << "Tracing..." << std::endl;
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        m_testShader->bind();
+
+//        m_SVGFGBuffer->bindTextures();
+//        m_testShader->setUniform("gDepthIds", 0);
+//        m_testShader->setUniform("gNormal", 1);
+
+//        renderQuad();
+//        m_testShader->unbind();
+
+        //m_SVGFGBuffer->depthBufferCopy();
+
+        // Pathtracing
+        // INPUT: scene
+        // OUTPUT: direct/indirect lighting color
+
+//        std::cout << "Tracing..." << std::endl;
         trace();
-        std::cout << "Done!" << std::endl;
+//        std::cout << "Done!" << std::endl;
 
-        // TODO: Temporal shader
+
+        // TODO: Temporal accumulation shader
+        // INPUT: color, motion vectors, normals, depth, mesh/mat ids, color history, moments history, prev normals, prev depth, prev mesh/mat ids
+        // OUTPUT: integrated color, integrated moments
+
+
+        // TODO: Variance estimation
+        // INPUT: integrated moments
+        // OUTPUT: variance
+
 
         // TODO: Wavelet filter
+        // INPUT: integrated color, variance, luminance (if seperated)
+        // OUTPUT: 1st level filtered color, 5th level filtered color
 
         // Blit between two FBOs for colorVariance
 
-        // TODO: Post-processing
+
+        // TODO: Update color and moments history
+        // INPUT: 1st level filtered color, integrated moments
+        // OUTPUT: color history, moments history
+
+
+        // TODO: Reconstruction
+        // INPUT: direct/indirect lighting, 5th level filtered color
+        // OUTPUT: combined light and primary albedo
+
+
+        // TODO: Post-processing (tone mapping, temporal antialiasing)
+        // INPUT: combined light and primary albedo
+        // OUTPUT: rendered image
+
 
         m_pipeline = false;
     } else {
@@ -154,8 +231,9 @@ void Scene::setBVH(const BVH &bvh)
 bool Scene::parseTree(CS123SceneNode *root, Scene& scene, const std::string &baseDir)
 {
     std::vector<Object *> *objects = new std::vector<Object *>;
-    int id;
+    int id = 0;
     parseNode(root, glm::mat4x4(1.f), objects, baseDir, id);
+    std::cout << objects->size() << std::endl;
     if(objects->size() == 0) {
         return false;
     }
@@ -238,7 +316,6 @@ std::vector<Mesh*> Scene::loadMesh(std::string filePath, const CS123SceneMateria
         return res;
     }
 
-    //TODO populate vectors and use tranform
     for(size_t s = 0; s < shapes.size(); s++) {
         std::vector<glm::vec3> vertices;
         std::vector<glm::vec3> normals;

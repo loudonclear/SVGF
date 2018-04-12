@@ -7,6 +7,7 @@ layout(location = 0) out vec4 cvnext;
 uniform sampler2D gDepthIds;
 uniform sampler2D gNormal;
 uniform sampler2D colorVariance;
+uniform sampler2D luma;
 
 uniform int level;
 
@@ -18,11 +19,11 @@ const float sigmaL = 4.0;
 const float h[5] = float[5](1.0/16.0, 1.0/4.0, 3.0/8.0, 1.0/4.0, 1.0/16.0);
 const float gaussKernel[9] = float[9](1.0/16.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/4.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/16.0);
 
-// TODO: Luma texture buffer. May also need gamma correction
-const vec3 lumaConvert = vec3(0.2126, 0.7152, 0.0722);
-float luma(vec3 rgb) {
-    return dot(lumaConvert, rgb);
-}
+//// May also need gamma correction
+//const vec3 lumaConvert = vec3(0.2126, 0.7152, 0.0722);
+//float luma(vec3 rgb) {
+//    return dot(lumaConvert, rgb);
+//}
 
 
 // Horizontal wavelet
@@ -36,8 +37,7 @@ void main() {
 
     vec3 pNormal = texture(gNormal, uv).rgb;
 
-    vec3 pColor = texture(colorVariance, uv).rgb;
-    float pLuminance = luma(pColor);
+    float pLuminance = texture(luma, uv).r;
 
 
     vec2 texelSize = 1.0 / textureSize(gDepthIds, 0).xy;
@@ -58,7 +58,7 @@ void main() {
 
             vec3 qColor = texture(colorVariance, loc).rgb;
             float qVariance = texture(colorVariance, loc).a;
-            float qLuminance = luma(qColor);
+            float qLuminance = texture(luma, loc).r;
 
             float dz = pDepth - qDepth;
             float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz * (uv.x - loc.x)) + epsilon)));

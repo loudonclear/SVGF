@@ -11,6 +11,7 @@ public:
     void unbind() const;
 
     void bindTextures() const;
+    void depthBufferCopy() const;
 
 private:
     unsigned int gBuffer;

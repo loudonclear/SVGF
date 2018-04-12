@@ -127,6 +127,7 @@ DEFINES += GLM_SWIZZLE GLM_FORCE_RADIANS
 OTHER_FILES += \
     shaders/*
 
+RCC_DIR = shaders/
 RESOURCES += \
     resources.qrc
 

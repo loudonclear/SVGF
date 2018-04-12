@@ -6,5 +6,9 @@
         <file>shaders/wavelet.vert</file>
         <file>shaders/gbuffer.frag</file>
         <file>shaders/gbuffer.vert</file>
+        <file>shaders/temporal.frag</file>
+        <file>shaders/temporal.vert</file>
+        <file>shaders/test.frag</file>
+        <file>shaders/test.vert</file>
     </qresource>
 </RCC>

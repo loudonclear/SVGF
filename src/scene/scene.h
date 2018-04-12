@@ -55,7 +55,8 @@ private:
 
     std::shared_ptr<SVGFGBuffer> m_SVGFGBuffer;
 
-    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_waveletShader;
+    std::shared_ptr<CS123::GL::Shader> m_testShader;
+    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_temporalShader, m_waveletShader;
     bool m_pipeline;
 
     CS123SceneGlobalData m_globalData;

@@ -12,10 +12,8 @@ uniform mat4 p;
 
 void main()
 {
-    vec4 worldPos = m * vec4(aPosition, 1.0);
+    gl_Position = p * v * m * vec4(aPosition, 1.0);
+    clipDepth = gl_Position.z;
 
     normal = transpose(inverse(mat3(m))) * aNormal;
-
-    gl_Position = p * v * worldPos;
-    clipDepth = gl_Position.z;
 }
