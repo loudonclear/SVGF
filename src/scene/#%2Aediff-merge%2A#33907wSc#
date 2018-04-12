@@ -3,7 +3,6 @@
 #include "gl/shaders/Shader.h"
 #include "gl/util/ResourceLoader.h"
 #include "gl/util/SVGFGBuffer.h"
-#include "gl/util/FullScreenQuad.h"
 #include "pathtracer/pathtracer.h"
 #include "util/CS123Common.h"
 #include "util/CS123XmlSceneParser.h"
@@ -24,16 +23,21 @@ using namespace std;
 using namespace std::chrono;
 using namespace CS123::GL;
 
-Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height), m_pipeline(false)
+Scene::Scene(int width, int height) : width(width), height(height)
 {
     m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
+<<<<<<< variant A
+    m_defaultShader->setUniform("useLighting", false);
+>>>>>>> variant B
     m_gBufferShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.vert"), ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.frag"));
-    m_waveletShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/wavelet.vert"), ResourceLoader::loadResourceFileToString(":/shaders/wavelet.frag"));
 
-    m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
+======= end
+    m_pathTracer = std::make_shared<PathTracer>(width, height, 1);
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
-}
 
+    // Currently just horizontal
+    m_waveletShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/wavelet.vert"), ResourceLoader::loadResourceFileToString(":/shaders/wavelet.frag"));
+}
 
 
 Scene::~Scene()
@@ -47,10 +51,6 @@ Scene::~Scene()
     delete lights;
 }
 
-void Scene::pipeline() {
-    m_pipeline = true;
-}
-
 std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
   CS123XmlSceneParser parser(filename.toStdString());
   if (!parser.parse()) {
@@ -58,9 +58,9 @@ std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
   }
   CS123SceneCameraData cameraData;
   parser.getCameraData(cameraData);
-  QuaternionCamera camera(cameraData.pos.xyz(), cameraData.look.xyz(),
+  BasicCamera camera(cameraData.pos.xyz(), cameraData.look.xyz(),
                      cameraData.up.xyz(), cameraData.heightAngle,
-                     (float)width / (float)height, 0.1f, 100.f);
+                     (float)width / (float)height);
   std::unique_ptr <Scene> scene = std::make_unique<Scene>(width, height);
   scene->setCamera(camera);
 
@@ -83,7 +83,7 @@ std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
   return scene;
 }
 
-void Scene::trace() {
+void Scene::trace() const {
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     auto buffers = m_pathTracer->traceScene(*this);
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
@@ -93,57 +93,42 @@ void Scene::trace() {
     save_render_buffers(buffers);
 }
 
-void Scene::render() {
-
+void Scene::render() const {
+<<<<<<< variant A
+    m_defaultShader->bind();
+    m_defaultShader->setUniform("p", m_camera.getScaleMatrix());
+    m_defaultShader->setUniform("v", m_camera.getViewMatrix());
+>>>>>>> variant B
     // Pipeline:
-    if (m_pipeline) {
-        // TODO: Render G-buffer and 1spp direct/indirect light
 
-        m_gBufferShader->bind();
-        m_SVGFGBuffer->bind();
+    // TODO: Render G-buffer and 1spp direct/indirect light
+======= end
 
-        m_gBufferShader->setUniform("p", m_camera.getProjectionMatrix());
-        m_gBufferShader->setUniform("v", m_camera.getViewMatrix());
+    m_SVGFGBuffer->bind();
+    m_gBufferShader->bind();
+    m_gBufferShader->setUniform("projection", m_camera.getScaleMatrix());
+    m_gBufferShader->setUniform("view", m_camera.getViewMatrix());
 
-        for (Object *obj : *_objects) {
-            m_gBufferShader->setUniform("m", obj->transform);
-            obj->render(m_defaultShader, m_pipeline);
-        }
-
-        m_SVGFGBuffer->unbind();
-        m_gBufferShader->unbind();
-
-        std::cout << "Tracing..." << std::endl;
-        trace();
-        std::cout << "Done!" << std::endl;
-
-        // TODO: Temporal shader
-
-        // TODO: Wavelet filter
-
-        // Blit between two FBOs for colorVariance
-
-        // TODO: Post-processing
-
-        m_pipeline = false;
-    } else {
-        // Visualization
-        m_defaultShader->bind();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        m_defaultShader->setUniform("p", m_camera.getProjectionMatrix());
-        m_defaultShader->setUniform("v", m_camera.getViewMatrix());
-
-        m_defaultShader->setUniform("light_dir", glm::vec3(0, 0, -1.f));
-        m_defaultShader->setUniform("light_color", glm::vec3(0.2f, 0.2f, 0.2f));
-
-        for (Object *obj : *_objects) {
-            m_defaultShader->setUniform("m", obj->transform);
-            obj->render(m_defaultShader, m_pipeline);
-        }
-        m_defaultShader->unbind();
+    for (Object *obj : *_objects) {
+        m_gBufferShader->setUniform("model", obj->transform);
+        obj->render();
     }
 
+    m_gBufferShader->unbind();
+    m_SVGFGBuffer->unbind();
+
+//    std::cout<<"Tracing..." << std::endl;
+//    trace();
+//    std::cout<<"Done!" << std::endl;
+
+
+    // TODO: Temporal shader
+
+    // TODO: Wavelet filter
+
+    // TODO: Post-processing
+
+    m_defaultShader->unbind();
 }
 
 void Scene::setBVH(const BVH &bvh)
@@ -154,8 +139,7 @@ void Scene::setBVH(const BVH &bvh)
 bool Scene::parseTree(CS123SceneNode *root, Scene& scene, const std::string &baseDir)
 {
     std::vector<Object *> *objects = new std::vector<Object *>;
-    int id;
-    parseNode(root, glm::mat4x4(1.f), objects, baseDir, id);
+    parseNode(root, glm::mat4x4(1.f), objects, baseDir);
     if(objects->size() == 0) {
         return false;
     }
@@ -175,7 +159,7 @@ bool Scene::parseTree(CS123SceneNode *root, Scene& scene, const std::string &bas
     return true;
 }
 
-void Scene::parseNode(CS123SceneNode *node, const glm::mat4x4 &parentTransform, std::vector<Object *> *objects, const std::string &baseDir, int &id)
+void Scene::parseNode(CS123SceneNode *node, const glm::mat4x4 &parentTransform, std::vector<Object *> *objects, const std::string &baseDir)
 {
     glm::mat4x4 transform = parentTransform;
     for(CS123SceneTransformation *trans : node->transformations) {
@@ -195,20 +179,20 @@ void Scene::parseNode(CS123SceneNode *node, const glm::mat4x4 &parentTransform, 
         }
     }
     for(CS123ScenePrimitive *prim : node->primitives) {
-        addPrimitive(prim, transform, objects, baseDir, id);
+        addPrimitive(prim, transform, objects, baseDir);
     }
     for(CS123SceneNode *child : node->children) {
-        parseNode(child, transform, objects, baseDir, id);
+        parseNode(child, transform, objects, baseDir);
     }
 }
 
-void Scene::addPrimitive(CS123ScenePrimitive *prim, const glm::mat4x4 &transform, std::vector<Object *> *objects, const std::string &baseDir, int &id)
+void Scene::addPrimitive(CS123ScenePrimitive *prim, const glm::mat4x4 &transform, std::vector<Object *> *objects, const std::string &baseDir)
 {
     std::vector<Mesh*> objs;
     switch(prim->type) {
     case PrimitiveType::PRIMITIVE_MESH:
         std::cout << "Loading mesh " << prim->meshfile << std::endl;
-        objs = loadMesh(prim->meshfile, prim->material, transform, baseDir, id);
+        objs = loadMesh(prim->meshfile, prim->material, transform, baseDir);
         objects->insert(objects->end(), std::begin(objs), std::end(objs));
         std::cout << "Done loading mesh" << std::endl;
         break;
@@ -218,7 +202,7 @@ void Scene::addPrimitive(CS123ScenePrimitive *prim, const glm::mat4x4 &transform
     }
 }
 
-std::vector<Mesh*> Scene::loadMesh(std::string filePath, const CS123SceneMaterial & material, const glm::mat4x4 &transform, const std::string &baseDir, int &id)
+std::vector<Mesh*> Scene::loadMesh(std::string filePath, const CS123SceneMaterial & material, const glm::mat4x4 &transform, const std::string &baseDir)
 {
     tinyobj::attrib_t attrib;
     std::vector<tinyobj::shape_t> shapes;
@@ -300,8 +284,7 @@ std::vector<Mesh*> Scene::loadMesh(std::string filePath, const CS123SceneMateria
         }
 
         Mesh *m = new Mesh;
-        m->init(id++,
-                vertices,
+        m->init(vertices,
                 normals,
                 uvs,
                 colors,
@@ -332,12 +315,12 @@ const BVH &Scene::getBVH() const
     return *m_bvh;
 }
 
-const QuaternionCamera &Scene::getCamera() const
+const BasicCamera &Scene::getCamera() const
 {
     return m_camera;
 }
 
-void Scene::setCamera(const QuaternionCamera &camera)
+void Scene::setCamera(const BasicCamera &camera)
 {
     m_camera = camera;
 }
