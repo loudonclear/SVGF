@@ -1,18 +1,16 @@
 #version 400
 
-layout (location = 0) out vec4 gPosition;
-layout (location = 1) out vec4 gNormal;
+layout (location = 0) out vec3 gDepthIds;
+layout (location = 1) out vec3 gNormal;
 
-//in vec2 TexCoords;
-in vec3 FragPos;
-in vec3 Normal;
+in float clipDepth;
+in vec3 normal;
 
 uniform float meshID;
 uniform float matID;
-//uniform sampler2D texture_diffuse;
 
 void main()
 {
-    gPosition = vec4(FragPos, meshID);
-    gNormal = vec4(normalize(Normal), matID);
+    gDepthIds = vec3(clipDepth, meshID, matID);
+    gNormal = normalize(normal);
 }

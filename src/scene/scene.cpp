@@ -28,13 +28,12 @@ Scene::Scene(int width, int height) : width(width), height(height), m_pipeline(f
 {
     m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
     m_gBufferShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.vert"), ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.frag"));
+    m_waveletShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/wavelet.vert"), ResourceLoader::loadResourceFileToString(":/shaders/wavelet.frag"));
 
     m_pathTracer = std::make_shared<PathTracer>(width, height, 1);
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
-
-    // Currently just horizontal
-    m_waveletShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/wavelet.vert"), ResourceLoader::loadResourceFileToString(":/shaders/wavelet.frag"));
 }
+
 
 
 Scene::~Scene()
@@ -100,18 +99,19 @@ void Scene::render() {
     if (m_pipeline) {
         // TODO: Render G-buffer and 1spp direct/indirect light
 
-        //m_gBufferShader->bind();
-        //m_SVGFGBuffer->bind();
+        m_gBufferShader->bind();
+        m_SVGFGBuffer->bind();
 
-        //    m_gBufferShader->unbind();
-        //    m_SVGFGBuffer->unbind();
+        m_gBufferShader->setUniform("p", m_camera.getProjectionMatrix());
+        m_gBufferShader->setUniform("v", m_camera.getViewMatrix());
 
-        //    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        for (Object *obj : *_objects) {
+            m_gBufferShader->setUniform("m", obj->transform);
+            obj->render(m_defaultShader, m_pipeline);
+        }
 
-            //m_SVGFGBuffer->bindTextures();
-
-        //    FullScreenQuad fsq;
-        //    fsq.draw();
+        m_SVGFGBuffer->unbind();
+        m_gBufferShader->unbind();
 
 
         //    std::cout<<"Tracing..." << std::endl;
@@ -122,6 +122,8 @@ void Scene::render() {
         // TODO: Temporal shader
 
         // TODO: Wavelet filter
+
+        // Blit between two FBOs for colorVariance
 
         // TODO: Post-processing
 

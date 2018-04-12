@@ -1,10 +1,10 @@
-#version 400 core
+#version 400
 
 in vec2 uv;
 
-out vec4 cvnext;
+layout(location = 0) out vec4 cvnext;
 
-uniform sampler2D gPosition;
+uniform sampler2D gDepthIds;
 uniform sampler2D gNormal;
 uniform sampler2D colorVariance;
 
@@ -16,62 +16,68 @@ const float sigmaZ = 1.0;
 const float sigmaN = 128.0;
 const float sigmaL = 4.0;
 const float h[5] = float[5](1.0/16.0, 1.0/4.0, 3.0/8.0, 1.0/4.0, 1.0/16.0);
+const float gaussKernel[9] = float[9](1.0/16.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/4.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/16.0);
 
-
+// TODO: Luma texture buffer. May also need gamma correction
+const vec3 lumaConvert = vec3(0.2126, 0.7152, 0.0722);
 float luma(vec3 rgb) {
-    return (rgb.r + rgb.r + rgb.b + rgb.g + rgb.g + rgb.g) / 6.0;
+    return dot(lumaConvert, rgb);
 }
 
-// TODO: standard luminance formula function
 
+// Horizontal wavelet
+// REMEMBER: Alternate horizontal and vertical ping-ponging colorVariance. Then up the level. Repeat.
 
-// REMEMBER: Alternate horizontal and vertical. Then up the level. Repeat. After first iter, store colorVariance in separate texture.
-
-// Horizontal wavelet (might be able to change texcoords for vertical pass)
 void main() {
-    vec3 fragpos = texture(gPosition, uv).rgb;
-    int meshID = int(texture(gPosition, uv).a);
-    vec3 normal = texture(gNormal, uv).rgb;
-    int matID = int(texture(gNormal, uv).a);
-    vec3 color = texture(colorVariance, uv).rgb;
-    float variance = texture(colorVariance, uv).a;
-    float luminance = 0.0;
 
-    // TODO: Might need normalization
-    float depth = fragpos.z;
+    float pDepth = texture(gDepthIds, uv).r;
+    int pMeshID = int(texture(gDepthIds, uv).g);
+    int pMatID = int(texture(gNormal, uv).b);
 
-    vec2 texelSize = 1.0 / textureSize(gPosition, 0).xy;
+    vec3 pNormal = texture(gNormal, uv).rgb;
+
+    vec3 pColor = texture(colorVariance, uv).rgb;
+    float pLuminance = luma(pColor);
+
+
+    vec2 texelSize = 1.0 / textureSize(gDepthIds, 0).xy;
     int step = 1 << level;
 
     vec3 c = vec3(0.0);
     float v = 0.0;
     float weights = 0.0;
 
-    for (int xoffset = -support; xoffset <= support; xoffset++) {
-        vec2 loc = uv + vec2(step * xoffset * texelSize.x);
-        int meID = int(texture(gPosition, loc).a);
-        int maID = int(texture(gNormal, loc).a);
+    for (int offset = -support; offset <= support; offset++) {
+        vec2 loc = uv + vec2(step * offset * texelSize.x, 0.0);
+        int qMeshID = int(texture(gDepthIds, loc).g);
+        int qMatID = int(texture(gDepthIds, loc).b);
 
-        if (meshID == meID && matID == maID) {
-            vec3 p = texture(gPosition, loc).rgb;
-            vec3 n = texture(gNormal, loc).rgb;
-            float d = p.z;
+        if (pMeshID == qMeshID && pMatID == qMatID) {
+            float qDepth = texture(gDepthIds, loc).r;
+            vec3 qNormal = texture(gNormal, loc).rgb;
 
-            float dz = depth - d;
+            vec3 qColor = texture(colorVariance, loc).rgb;
+            float qVariance = texture(colorVariance, loc).a;
+            float qLuminance = luma(qColor);
+
+            float dz = pDepth - qDepth;
             float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz * (uv.x - loc.x)) + epsilon)));
 
-            float wn = pow(max(0, dot(normal, n)), sigmaN);
+            float wn = pow(max(0.0, dot(pNormal, qNormal)), sigmaN);
 
-            // TODO: luminance
-            float l = 0.0;
             float gvl = 0.0;
-            float wl = min(1.0, exp(-abs(luminance - l)) / (sigmaL * gvl + epsilon));
+            for (int y0 = -1; y0 <= 1; y0++) {
+                for (int x0 = -1; x0 <= 1; x0++) {
+                    gvl += gaussKernel[x0 + 3*y0 + 4] * texture(colorVariance, loc + vec2(x0, y0) * texelSize).a;
+                }
+            }
+            float wl = min(1.0, exp(-abs(pLuminance - qLuminance)) / (sigmaL * sqrt(gvl) + epsilon));
 
             float w = wz * wn * wl;
-            float weight = h[xoffset + support] * w;
+            float weight = h[offset + support] * w;
 
-            c += weight * color;
-            v += weight * weight * variance;
+            c += weight * qColor;
+            v += weight * weight * qVariance;
             weights += weight;
         }
     }

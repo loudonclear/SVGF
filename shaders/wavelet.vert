@@ -1,4 +1,4 @@
-#version 400 core
+#version 400
 
 layout(location = 0) in vec3 position;
 layout(location = 5) in vec2 inUV;
