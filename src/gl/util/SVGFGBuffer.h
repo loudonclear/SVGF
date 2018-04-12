@@ -14,7 +14,7 @@ public:
 
 private:
     unsigned int gBuffer;
-    unsigned int gPosition, gNormal, gAlbedo;
+    unsigned int gPosition, gNormal;
     unsigned int rboDepth;
 
     int m_width, m_height;

@@ -59,7 +59,6 @@ SOURCES += \
     src/main.cpp \
     src/scene/shape/mesh.cpp \
     src/scene/shape/triangle.cpp \
-    src/scene/basiccamera.cpp \
     src/scene/scene.cpp \
     src/BVH/BBox.cpp \
     src/BVH/BVH.cpp \
@@ -68,7 +67,8 @@ SOURCES += \
     src/gl/util/SVGFGBuffer.cpp \
     src/pathtracer/pathtracer.cpp \
     src/gl/util/ResourceLoader.cpp \
-    src/gl/util/openglshape.cpp
+    src/gl/util/openglshape.cpp \
+    src/scene/QuaternionCamera.cpp
 
 
 HEADERS += \
@@ -93,8 +93,6 @@ HEADERS += \
     src/ui/mainwindow.h \
     src/scene/shape/mesh.h \
     src/scene/shape/triangle.h \
-    src/scene/basiccamera.h \
-    src/scene/camera.h \
     src/scene/scene.h \
     src/BVH/BBox.h \
     src/BVH/BVH.h \
@@ -114,7 +112,8 @@ HEADERS += \
     src/pathtracer/pathtracer.h \
     src/gl/util/ResourceLoader.h \
     src/gl/util/openglshape.h \
-    src/gl/util/sphere.h
+    src/gl/util/sphere.h \
+    src/scene/QuaternionCamera.h
 
 
 

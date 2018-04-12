@@ -37,7 +37,7 @@ private:
 
     void resizeGL(int w, int h);
 
-    void updateInputs();
+    void updateInputs(float dt);
 
     // mouse and keyboard events
     void mousePressEvent(QMouseEvent *event);
