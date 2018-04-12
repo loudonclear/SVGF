@@ -127,7 +127,7 @@ void toneMapSimple(QRgb *imageData, glm::vec3 *intensityValues,
 
 // Saves all buffers, and a combined version, in the given location
 void save_render_buffers(const RenderBuffers &buffs,
-                         std::string directory = "./res/results/",
+                         std::string directory = "../res/results/",
                          std::string name = "output");
 
 // Save a single image
