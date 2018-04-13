@@ -1,5 +1,6 @@
 #include "scene.h"
 
+#include "gl/textures/Texture2D.h"
 #include "gl/shaders/Shader.h"
 #include "gl/util/ResourceLoader.h"
 #include "gl/util/SVGFGBuffer.h"
@@ -159,15 +160,34 @@ void Scene::render() {
 //        renderQuad();
 //        m_testShader->unbind();
 
-        //m_SVGFGBuffer->depthBufferCopy();
 
         // Pathtracing
         // INPUT: scene
         // OUTPUT: direct/indirect lighting color
 
 //        std::cout << "Tracing..." << std::endl;
-        trace();
+        //trace();
 //        std::cout << "Done!" << std::endl;
+
+        auto buffers = m_pathTracer->traceScene(*this);
+
+        unsigned int directTexture;
+        glGenTextures(1, &directTexture);
+        glBindTexture(GL_TEXTURE_2D, directTexture);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, static_cast<const void *>(buffers.m_direct.get()));
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glBindTexture(GL_TEXTURE_2D, 0);
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        m_testShader->bind();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, directTexture);
+        m_testShader->setUniform("directTexture", 0);
+
+        renderQuad();
+        m_testShader->unbind();
 
 
         // TODO: Temporal accumulation shader
@@ -187,6 +207,7 @@ void Scene::render() {
         // Blit between two FBOs for colorVariance
 
 
+
         // TODO: Update color and moments history
         // INPUT: 1st level filtered color, integrated moments
         // OUTPUT: color history, moments history
@@ -202,7 +223,7 @@ void Scene::render() {
         // OUTPUT: rendered image
 
 
-        m_pipeline = false;
+        //m_pipeline = false;
     } else {
         // Visualization
         m_defaultShader->bind();
@@ -233,11 +254,11 @@ bool Scene::parseTree(CS123SceneNode *root, Scene& scene, const std::string &bas
     std::vector<Object *> *objects = new std::vector<Object *>;
     int id = 0;
     parseNode(root, glm::mat4x4(1.f), objects, baseDir, id);
-    std::cout << objects->size() << std::endl;
+
     if(objects->size() == 0) {
         return false;
     }
-    std::cout << "Parsed tree, creating BVH" << std::endl;
+    std::cout << "Parsed tree. " << objects->size() << " objects. Creating BVH..." << std::endl;
     BVH *bvh = new BVH(objects);
 
     std::vector<Object *> *lights = new std::vector<Object *>;

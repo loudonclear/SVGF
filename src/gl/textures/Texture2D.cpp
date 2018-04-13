@@ -9,7 +9,7 @@ Texture2D::Texture2D(unsigned char *data, int width, int height, GLenum type)
     GLenum internalFormat = type == GL_FLOAT ? GL_RGBA32F : GL_RGBA;
 
     bind();
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat , width, height, 0, GL_RGBA, type, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, GL_RGBA, type, data);
     unbind();
 }
 
