@@ -165,9 +165,9 @@ void Scene::render() {
         // INPUT: scene
         // OUTPUT: direct/indirect lighting color
 
-//        std::cout << "Tracing..." << std::endl;
+        std::cout << "Tracing..." << std::endl;
         trace();
-//        std::cout << "Done!" << std::endl;
+        std::cout << "Done!" << std::endl;
 
 
         // TODO: Temporal accumulation shader

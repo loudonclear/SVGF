@@ -190,29 +190,20 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
 
         if (mat.illum == 2) { // Diffuse
             const float pdf_rr = std::min(std::max(mat.diffuse[0], std::max(mat.diffuse[1], mat.diffuse[2])), 0.99f);
-
+            auto elem = RenderBuffers::Element::zero();
+            elem.m_albedo = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]) / ((float)M_PI);
             if (random() < pdf_rr) {
                 glm::vec3 wi;
                 float pdf;
                 cosineSampleHemisphere(normal, wi, pdf);
 
-                const glm::vec3 directIllumination = directLighting(hit, normal, scene);
-                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1, false).m_full;
-
-                const glm::vec3 brdf = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]) / ((float)M_PI);
-
                 const float illum_scale = glm::dot(wi, normal) / (pdf * pdf_rr);
-                const glm::vec3 illum = (directIllumination + indirectIllumination) * glm::dot(wi, normal) / (pdf * pdf_rr);
-
-                // TODO still using old code for full, for debugarino
-                auto elem = RenderBuffers::Element::zero();
-                elem.m_albedo = brdf;
-                elem.m_direct = directIllumination * illum_scale;
-                elem.m_indirect = indirectIllumination * illum_scale;
-                elem.m_full =  glm::vec3(brdf[0]*illum[0], brdf[1]*illum[1], brdf[2]*illum[2]);
-                return elem;
+                elem.m_direct = directLighting(hit, normal, scene) * illum_scale;
+                elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi),
+                                           scene, depth + 1, false).m_full * illum_scale;
+                elem.m_full = elem.m_albedo * (elem.m_direct + elem.m_indirect);
             }
-
+            return elem;
         } else if (mat.illum == 3) { // Glossy specular
             const float pdf_rr = 0.95f;
             //std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
@@ -271,23 +262,27 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
             }
 
         } else if (mat.illum == 5) { // Perfect specular
+            auto elem = RenderBuffers::Element::zero();
+            // TODO colored mirrors or nah?
+            // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1],
+            // mat.specular[2]);
+            elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
             const float pdf_rr = std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
-
             if (random() < pdf_rr) {
-                const glm::vec3 refl = glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
-                // TODO m_full
-                auto elem = RenderBuffers::Element::zero();
-                // TODO colored mirrors or nah?
-                // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
-                elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
-                elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth+1, true).m_full / pdf_rr;
-                elem.m_full = elem.m_albedo * elem.m_indirect;
-                return elem;
+              const glm::vec3 refl =
+                  glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
+              elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true).m_full / pdf_rr;
+              elem.m_full = elem.m_albedo * elem.m_indirect;
             }
+            return elem;
 
         } else if (mat.illum == 7) { // Refraction
-            const float pdf_rr = 0.99f;
+            auto elem = RenderBuffers::Element::zero();
+            // TODO colored mirrors or nah?
+            // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
+            elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
 
+            const float pdf_rr = 0.99f;
             if (random() < pdf_rr) {
                 const glm::vec3 refl = glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
 
@@ -299,10 +294,6 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                 const float radicand = 1.f - ratio * ratio * (1.f - costheta*costheta);
 
                 // TODO m_full
-                auto elem = RenderBuffers::Element::zero();
-                // TODO colored mirrors or nah?
-                // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
-                elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
                 if (radicand < 0) {
                   elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true).m_full / pdf_rr;
                 } else {
@@ -322,8 +313,8 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                     }
                 }
                 elem.m_full = elem.m_albedo * elem.m_indirect;
-                return elem;
             }
+            return elem;
         }
     }
     return RenderBuffers::Element::zero();
