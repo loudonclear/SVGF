@@ -2,11 +2,21 @@
 
 in vec2 uv;
 
-layout(location = 0) out vec4 fragColor;
+out vec4 fragColor;
 
-uniform sampler2D directTexture;
+uniform isampler2D gMeshMatID;
+uniform sampler2D gNormal;
 
 void main() {
-    vec2 uvu = vec2(uv.x, 1.0 - uv.y);
-    fragColor = vec4(texture(directTexture, uvu).rgb, 1.0);
+    int meshID = texture(gMeshMatID, uv).r;
+    int matID = texture(gMeshMatID, uv).g;
+
+    vec3 normal = texture(gNormal, uv).rgb;
+
+    if (meshID == 0) {
+        fragColor = vec4(1.0, 1.0, 1.0, 1.0);
+    } else {
+        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+    }
+
 }

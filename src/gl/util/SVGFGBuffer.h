@@ -15,7 +15,7 @@ public:
 
 private:
     unsigned int gBuffer;
-    unsigned int gDepthIds, gNormal;
+    unsigned int gMeshMatID, gNormal;
     unsigned int rboDepth;
 
     int m_width, m_height;

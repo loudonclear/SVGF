@@ -135,30 +135,30 @@ void Scene::render() {
         // INPUT: scene
         // OUTPUT: depth, normals, mesh/mat ids, motion vectors
 
-//        m_SVGFGBuffer->bind();
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        m_SVGFGBuffer->bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-//        m_gBufferShader->bind();
-//        m_gBufferShader->setUniform("p", m_camera.getProjectionMatrix());
-//        m_gBufferShader->setUniform("v", m_camera.getViewMatrix());
+        m_gBufferShader->bind();
+        m_gBufferShader->setUniform("p", m_camera.getProjectionMatrix());
+        m_gBufferShader->setUniform("v", m_camera.getViewMatrix());
 
-//        for (Object *obj : *_objects) {
-//            m_gBufferShader->setUniform("m", obj->transform);
-//            obj->render(m_gBufferShader, m_pipeline);
-//        }
+        for (Object *obj : *_objects) {
+            m_gBufferShader->setUniform("m", obj->transform);
+            obj->render(m_gBufferShader, m_pipeline);
+        }
 
-//        m_gBufferShader->unbind();
-//        m_SVGFGBuffer->unbind();
+        m_gBufferShader->unbind();
+        m_SVGFGBuffer->unbind();
 
-//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//        m_testShader->bind();
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        m_testShader->bind();
 
-//        m_SVGFGBuffer->bindTextures();
-//        m_testShader->setUniform("gDepthIds", 0);
-//        m_testShader->setUniform("gNormal", 1);
+        m_SVGFGBuffer->bindTextures();
+        m_testShader->setUniform("gMeshMatID", 0);
+        m_testShader->setUniform("gNormal", 1);
 
-//        renderQuad();
-//        m_testShader->unbind();
+        renderQuad();
+        m_testShader->unbind();
 
 
         // Pathtracing
@@ -169,25 +169,25 @@ void Scene::render() {
         //trace();
 //        std::cout << "Done!" << std::endl;
 
-        auto buffers = m_pathTracer->traceScene(*this);
+//        auto buffers = m_pathTracer->traceScene(*this);
 
-        unsigned int directTexture;
-        glGenTextures(1, &directTexture);
-        glBindTexture(GL_TEXTURE_2D, directTexture);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, static_cast<const void *>(buffers.m_direct.get()));
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glBindTexture(GL_TEXTURE_2D, 0);
+//        unsigned int directTexture;
+//        glGenTextures(1, &directTexture);
+//        glBindTexture(GL_TEXTURE_2D, directTexture);
+//        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, static_cast<const void *>(buffers.m_direct.get()));
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+//        glBindTexture(GL_TEXTURE_2D, 0);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        m_testShader->bind();
+//        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//        m_testShader->bind();
 
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, directTexture);
-        m_testShader->setUniform("directTexture", 0);
+//        glActiveTexture(GL_TEXTURE0);
+//        glBindTexture(GL_TEXTURE_2D, directTexture);
+//        m_testShader->setUniform("directTexture", 0);
 
-        renderQuad();
-        m_testShader->unbind();
+//        renderQuad();
+//        m_testShader->unbind();
 
 
         // TODO: Temporal accumulation shader
@@ -235,7 +235,9 @@ void Scene::render() {
         m_defaultShader->setUniform("light_dir", glm::vec3(0, 0, -1.f));
         m_defaultShader->setUniform("light_color", glm::vec3(0.2f, 0.2f, 0.2f));
 
+        int i = 0;
         for (Object *obj : *_objects) {
+            i++;
             m_defaultShader->setUniform("m", obj->transform);
             obj->render(m_defaultShader, m_pipeline);
         }
