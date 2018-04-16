@@ -50,8 +50,12 @@ Scene::~Scene()
     delete lights;
 }
 
-void Scene::pipeline() {
-    m_pipeline = true;
+bool& Scene::pipeline() {
+    return m_pipeline;
+}
+
+const bool& Scene::pipeline() const {
+    return m_pipeline;
 }
 
 std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {

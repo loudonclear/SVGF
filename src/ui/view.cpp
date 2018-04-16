@@ -152,7 +152,7 @@ void View::keyPressEvent(QKeyEvent *event) {
         QApplication::quit();
     }
     if (event->key() == Qt::Key_Space) {
-        if (m_scene) m_scene->pipeline();
+      if (m_scene) m_scene->pipeline() = !m_scene->pipeline();
     }
 }
 void View::keyReleaseEvent(QKeyEvent *event) {

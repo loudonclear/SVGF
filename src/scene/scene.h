@@ -27,7 +27,8 @@ public:
 
     void trace();
     void render();
-    void pipeline();
+    bool& pipeline();
+    const bool& pipeline() const;
 
     void setBVH(const BVH &bvh);
     const BVH& getBVH() const;
