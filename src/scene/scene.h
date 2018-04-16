@@ -11,6 +11,7 @@
 
 class PathTracer;
 class SVGFGBuffer;
+class ColorVarianceBuffer;
 
 namespace CS123 { namespace GL {
 
@@ -54,9 +55,10 @@ private:
     std::shared_ptr<PathTracer> m_pathTracer;
 
     std::shared_ptr<SVGFGBuffer> m_SVGFGBuffer;
+    std::shared_ptr<ColorVarianceBuffer> m_colorVarianceBuffer1, m_colorVarianceBuffer2;
 
     std::shared_ptr<CS123::GL::Shader> m_testShader;
-    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_temporalShader, m_waveletShader;
+    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_temporalShader, m_waveletHorizontalShader, m_waveletVerticalShader, m_initColorLumaShader;
     bool m_pipeline;
 
     CS123SceneGlobalData m_globalData;

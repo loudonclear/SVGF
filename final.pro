@@ -68,7 +68,8 @@ SOURCES += \
     src/pathtracer/pathtracer.cpp \
     src/gl/util/ResourceLoader.cpp \
     src/gl/util/openglshape.cpp \
-    src/scene/QuaternionCamera.cpp
+    src/scene/QuaternionCamera.cpp \
+    src/gl/util/ColorVarianceBuffer.cpp
 
 
 HEADERS += \
@@ -113,7 +114,8 @@ HEADERS += \
     src/gl/util/ResourceLoader.h \
     src/gl/util/openglshape.h \
     src/gl/util/sphere.h \
-    src/scene/QuaternionCamera.h
+    src/scene/QuaternionCamera.h \
+    src/gl/util/ColorVarianceBuffer.h
 
 
 
@@ -176,5 +178,4 @@ RESOURCES += \
 
 DISTFILES += \
     src/BVH/License.txt \
-    src/BVH/README \
-    shaders/gbuffer.fsh
+    src/BVH/README

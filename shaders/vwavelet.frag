@@ -1,13 +1,13 @@
-#version 400
+#version 420
 
 in vec2 uv;
 
 layout(location = 0) out vec4 cvnext;
 
-uniform sampler2D gDepthIds;
+uniform sampler2D gDepthIDs;
 uniform sampler2D gNormal;
 uniform sampler2D colorVariance;
-uniform sampler2D luma;
+//uniform sampler2D luma;
 
 uniform int level;
 
@@ -31,16 +31,16 @@ const float gaussKernel[9] = float[9](1.0/16.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/
 
 void main() {
 
-    float pDepth = texture(gDepthIds, uv).r;
-    int pMeshID = int(texture(gDepthIds, uv).g);
-    int pMatID = int(texture(gNormal, uv).b);
+    float pDepth = texture(gDepthIDs, uv).r;
+    float pMeshID = texture(gDepthIDs, uv).g;
+    float pMatID = texture(gDepthIDs, uv).b;
 
     vec3 pNormal = texture(gNormal, uv).rgb;
 
-    float pLuminance = texture(luma, uv).r;
+    float pLuminance = 0.0;//texture(luma, uv).r;
 
 
-    vec2 texelSize = 1.0 / textureSize(gDepthIds, 0).xy;
+    vec2 texelSize = 1.0 / textureSize(gDepthIDs, 0).xy;
     int step = 1 << level;
 
     vec3 c = vec3(0.0);
@@ -48,17 +48,17 @@ void main() {
     float weights = 0.0;
 
     for (int offset = -support; offset <= support; offset++) {
-        vec2 loc = uv + vec2(step * offset * texelSize.x, 0.0);
-        int qMeshID = int(texture(gDepthIds, loc).g);
-        int qMatID = int(texture(gDepthIds, loc).b);
+        vec2 loc = uv + vec2(0.0, step * offset * texelSize.y);
+        float qMeshID = texture(gDepthIDs, loc).g;
+        float qMatID = texture(gDepthIDs, loc).b;
 
         if (pMeshID == qMeshID && pMatID == qMatID) {
-            float qDepth = texture(gDepthIds, loc).r;
+            float qDepth = texture(gDepthIDs, loc).r;
             vec3 qNormal = texture(gNormal, loc).rgb;
 
             vec3 qColor = texture(colorVariance, loc).rgb;
             float qVariance = texture(colorVariance, loc).a;
-            float qLuminance = texture(luma, loc).r;
+            float qLuminance = 0.0;//texture(luma, loc).r;
 
             float dz = pDepth - qDepth;
             float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz * (uv.x - loc.x)) + epsilon)));
@@ -72,6 +72,7 @@ void main() {
                 }
             }
             float wl = min(1.0, exp(-abs(pLuminance - qLuminance)) / (sigmaL * sqrt(gvl) + epsilon));
+            wl = 1.0;
 
             float w = wz * wn * wl;
             float weight = h[offset + support] * w;

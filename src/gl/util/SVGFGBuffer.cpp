@@ -8,16 +8,15 @@ SVGFGBuffer::SVGFGBuffer(int width, int height) : m_width(width), m_height(heigh
     glGenFramebuffers(1, &gBuffer);
     bind();
 
-    // TODO: FIX
-    // Mesh/Mat ID Buffer
-    glGenTextures(1, &gMeshMatID);
-    glBindTexture(GL_TEXTURE_2D, gMeshMatID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RG8I, width, height, 0, GL_RG_INTEGER, GL_INT, NULL);
+    // Depth, Mesh/Mat ID Buffer
+    glGenTextures(1, &gDepthIDs);
+    glBindTexture(GL_TEXTURE_2D, gDepthIDs);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gMeshMatID, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gDepthIDs, 0);
 
     // Normal Buffer
     glGenTextures(1, &gNormal);
@@ -54,11 +53,12 @@ void SVGFGBuffer::unbind() const {
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void SVGFGBuffer::bindTextures() const {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, gMeshMatID);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, gNormal);
+unsigned int SVGFGBuffer::getDepthIDsTexture() const {
+    return gDepthIDs;
+}
+
+unsigned int SVGFGBuffer::getNormalTexture() const {
+    return gNormal;
 }
 
 void SVGFGBuffer::depthBufferCopy() const {

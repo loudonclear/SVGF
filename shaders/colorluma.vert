@@ -1,7 +1,7 @@
-#version 400
+#version 420
 
 layout(location = 0) in vec3 position;
-layout(location = 5) in vec2 inUV;
+layout(location = 1) in vec2 inUV;
 
 out vec2 uv;
 
