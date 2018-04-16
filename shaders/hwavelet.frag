@@ -1,4 +1,4 @@
-#version 420
+#version 400
 
 in vec2 uv;
 
@@ -40,7 +40,7 @@ void main() {
     float pLuminance = 0.0;//texture(luma, uv).r;
 
 
-    vec2 texelSize = 1.0 / textureSize(colorVariance, 0).xy;
+    vec2 texelSize = 1.0 / textureSize(gNormal, 0).xy;
     int step = 1 << level;
 
     vec3 c = vec3(0.0);
@@ -87,6 +87,12 @@ void main() {
         cvnext.rgb = c / weights;
         cvnext.a = v / (weights * weights);
     } else {
-        cvnext = vec4(texture(colorVariance, uv).rgb, 1.0);
+      vec4 cvnext_var = vec4(texture(colorVariance, uv).rgb, 1.0);
+      vec4 cvnext_normal = vec4(texture(gNormal, uv).rgb, 1.0);
+      if (uv.x < 0.5){
+        cvnext = cvnext_normal;
+      } else {
+        cvnext = cvnext_var;
+      }
     }
 }

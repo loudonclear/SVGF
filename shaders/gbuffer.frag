@@ -1,4 +1,4 @@
-#version 420
+#version 400
 
 layout (location = 0) out vec3 gDepthIDs;
 layout (location = 1) out vec3 gNormal;

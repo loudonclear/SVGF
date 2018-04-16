@@ -1,11 +1,11 @@
 #include "scene.h"
 
-#include "gl/textures/Texture2D.h"
 #include "gl/shaders/Shader.h"
-#include "gl/util/ResourceLoader.h"
-#include "gl/util/SVGFGBuffer.h"
+#include "gl/textures/Texture2D.h"
 #include "gl/util/ColorVarianceBuffer.h"
 #include "gl/util/FullScreenQuad.h"
+#include "gl/util/ResourceLoader.h"
+#include "gl/util/SVGFGBuffer.h"
 #include "pathtracer/pathtracer.h"
 #include "util/CS123Common.h"
 #include "util/CS123XmlSceneParser.h"
@@ -189,12 +189,14 @@ void Scene::render() {
         m_colorVarianceBuffer1->bind();
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         m_initColorLumaShader->bind();
-        glActiveTexture(GL_TEXTURE0);
+        glActiveTexture(GL_TEXTURE11);
         glBindTexture(GL_TEXTURE_2D, directTexture);
-        m_initColorLumaShader->setUniform("color", 0);
+        m_initColorLumaShader->setUniform("color", 11);
         renderQuad();
         m_initColorLumaShader->unbind();
         m_colorVarianceBuffer1->unbind();
+
+        CS123::GL::printGLErrorCodeInEnglish(glGetError());
 
         // Blit between two FBOs for colorVariance
 
