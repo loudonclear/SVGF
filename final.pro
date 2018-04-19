@@ -69,7 +69,8 @@ SOURCES += \
     src/gl/util/ResourceLoader.cpp \
     src/gl/util/openglshape.cpp \
     src/scene/QuaternionCamera.cpp \
-    src/gl/util/ColorVarianceBuffer.cpp
+    src/gl/util/ColorVarianceBuffer.cpp \
+    src/gl/util/ColorBuffer.cpp
 
 
 HEADERS += \
@@ -115,7 +116,8 @@ HEADERS += \
     src/gl/util/openglshape.h \
     src/gl/util/sphere.h \
     src/scene/QuaternionCamera.h \
-    src/gl/util/ColorVarianceBuffer.h
+    src/gl/util/ColorVarianceBuffer.h \
+    src/gl/util/ColorBuffer.h
 
 
 
