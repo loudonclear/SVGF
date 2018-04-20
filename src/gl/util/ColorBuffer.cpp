@@ -5,7 +5,7 @@
 
 ColorBuffer::ColorBuffer(int width, int height, RenderBuffers &buffers) : m_width(width), m_height(height)
 {
-    glGenFramebuffers(1, &cvBuffer);
+    glGenFramebuffers(1, &cBuffer);
     bind();
 
     // Direct Color
@@ -49,7 +49,7 @@ ColorBuffer::ColorBuffer(int width, int height, RenderBuffers &buffers) : m_widt
 }
 
 void ColorBuffer::bind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, cvBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, cBuffer);
     glViewport(0, 0, m_width, m_height);
 }
 

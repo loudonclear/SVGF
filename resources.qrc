@@ -12,5 +12,6 @@
         <file>shaders/test.vert</file>
         <file>shaders/vwavelet.frag</file>
         <file>shaders/wavelet.frag</file>
+        <file>shaders/reconstruction.frag</file>
     </qresource>
 </RCC>

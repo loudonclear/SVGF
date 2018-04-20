@@ -52,7 +52,7 @@ void main() {
             float qLuminance = 0.0;//texture(luma, loc).r;
 
             float dz = pDepth - qDepth;
-            float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz * (uv.y - loc.y)) + epsilon)));
+            float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz) + epsilon)));
 
             float wn = pow(max(0.0, dot(pNormal, qNormal)), sigmaN);
 

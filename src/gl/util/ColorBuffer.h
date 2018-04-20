@@ -17,7 +17,7 @@ public:
 
 
 private:
-    unsigned int cvBuffer;
+    unsigned int cBuffer;
     unsigned int direct, indirect, albedo;
 
     int m_width, m_height;

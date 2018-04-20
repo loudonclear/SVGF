@@ -18,6 +18,10 @@ void checkError() {
 void printGLErrorCodeInEnglish(GLenum err) {
     std::cerr << "GL error code " << err << ":" << std::endl;
     switch(err) {
+        case GL_NO_ERROR:
+          std::cerr << "GL_NO_ERROR" << std::endl;
+          std::cerr << "No Gl Error." << std::endl;
+          break;
         case GL_INVALID_ENUM:
             std::cerr << "GL_INVALID_ENUM" << std::endl;
             std::cerr << "An unacceptable value is specified for an enumerated argument. The offending command is ignored and has no other side effect than to set the error flag." << std::endl;
