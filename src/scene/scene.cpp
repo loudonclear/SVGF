@@ -32,10 +32,11 @@ Scene::Scene(int width, int height, unsigned int samples) : width(width), height
     m_testShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/test.vert"), ResourceLoader::loadResourceFileToString(":/shaders/test.frag"));
     m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
     m_gBufferShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.vert"), ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.frag"));
-    m_temporalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/temporal.vert"), ResourceLoader::loadResourceFileToString(":/shaders/temporal.frag"));
-    m_waveletHorizontalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/hwavelet.vert"), ResourceLoader::loadResourceFileToString(":/shaders/hwavelet.frag"));
-    m_waveletVerticalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/vwavelet.vert"), ResourceLoader::loadResourceFileToString(":/shaders/vwavelet.frag"));
-    m_initColorLumaShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/colorluma.vert"), ResourceLoader::loadResourceFileToString(":/shaders/colorluma.frag"));
+    m_temporalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/temporal.frag"));
+    m_waveletHorizontalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/hwavelet.frag"));
+    m_waveletVerticalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/vwavelet.frag"));
+    m_waveletShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/wavelet.frag"));
+    m_initColorLumaShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/colorluma.frag"));
 
     m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
@@ -164,7 +165,6 @@ void Scene::render() {
         ColorBuffer cb = ColorBuffer(width, height, buffers);
 
 
-
         // TODO: Temporal accumulation shader
         // INPUT: color, motion vectors, normals, depth, mesh/mat ids, color history, moments history, prev normals, prev depth, prev mesh/mat ids
         // OUTPUT: integrated color, integrated moments
@@ -176,7 +176,7 @@ void Scene::render() {
 
 
         // TODO: Wavelet filter
-        // INPUT: integrated color, variance, luminance (if seperated)
+        // INPUT: integrated color, variance, luminance
         // OUTPUT: 1st level filtered color, 5th level filtered color
 
         // Initial color and luma
@@ -192,19 +192,15 @@ void Scene::render() {
 
         // Blit between two FBOs for colorVariance
 
-
         m_colorVarianceBuffer2->bind();
         m_waveletHorizontalShader->bind();
-
         GLint cvLoc = glGetUniformLocation(m_waveletHorizontalShader->getID(), "colorVariance");
         GLint gdLoc = glGetUniformLocation(m_waveletHorizontalShader->getID(), "gDepthIDs");
         GLint nLoc = glGetUniformLocation(m_waveletHorizontalShader->getID(), "gNormal");
-
         glUniform1i(cvLoc, 0);
         glUniform1i(gdLoc, 1);
         glUniform1i(nLoc, 2);
         m_waveletHorizontalShader->setUniform("level", 0);
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_colorVarianceBuffer1->getColorVarianceTexture());
         glActiveTexture(GL_TEXTURE1);
@@ -213,24 +209,19 @@ void Scene::render() {
         glBindTexture(GL_TEXTURE_2D, m_SVGFGBuffer->getNormalTexture());
         //glActiveTexture(GL_TEXTURE3);
         //glBindTexture(GL_TEXTURE_2D, luma);
-
         renderQuad();
 
         m_colorVarianceBuffer1->bind();
         m_waveletVerticalShader->bind();
-
         cvLoc = glGetUniformLocation(m_waveletVerticalShader->getID(), "colorVariance");
         gdLoc = glGetUniformLocation(m_waveletVerticalShader->getID(), "gDepthIDs");
         nLoc = glGetUniformLocation(m_waveletVerticalShader->getID(), "gNormal");
-
         glUniform1i(cvLoc, 0);
         glUniform1i(gdLoc, 1);
         glUniform1i(nLoc, 2);
         m_waveletVerticalShader->setUniform("level", 0);
-
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_colorVarianceBuffer2->getColorVarianceTexture());
-
         renderQuad();
 
         // TODO: Store 1st level filtered color
@@ -238,23 +229,16 @@ void Scene::render() {
         for (int i = 1; i < 5; i++) {
             m_colorVarianceBuffer2->bind();
             m_waveletHorizontalShader->bind();
-
             m_waveletHorizontalShader->setUniform("level", i);
-
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, m_colorVarianceBuffer1->getColorVarianceTexture());
-
             renderQuad();
-
 
             m_colorVarianceBuffer1->bind();
             m_waveletVerticalShader->bind();
-
             m_waveletVerticalShader->setUniform("level", i);
-
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GL_TEXTURE_2D, m_colorVarianceBuffer2->getColorVarianceTexture());
-
             renderQuad();
         }
 
@@ -263,7 +247,8 @@ void Scene::render() {
         m_testShader->bind();
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, m_colorVarianceBuffer1->getColorVarianceTexture());
-        m_testShader->setUniform("colorVariance", 0);
+        cvLoc = glGetUniformLocation(m_waveletVerticalShader->getID(), "colorVariance");
+        glUniform1i(cvLoc, 0);
         renderQuad();
         m_testShader->unbind();
 
@@ -277,6 +262,8 @@ void Scene::render() {
         // TODO: Reconstruction
         // INPUT: direct/indirect lighting, 5th level filtered color
         // OUTPUT: combined light and primary albedo
+
+
 
 
         // TODO: Post-processing (tone mapping, temporal antialiasing)

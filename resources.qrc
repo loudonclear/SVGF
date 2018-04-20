@@ -1,18 +1,16 @@
 <RCC>
     <qresource prefix="/">
-        <file>shaders/shader.frag</file>
-        <file>shaders/shader.vert</file>
+        <file>shaders/colorluma.frag</file>
         <file>shaders/gbuffer.frag</file>
         <file>shaders/gbuffer.vert</file>
+        <file>shaders/hwavelet.frag</file>
+        <file>shaders/quad.vert</file>
+        <file>shaders/shader.frag</file>
+        <file>shaders/shader.vert</file>
         <file>shaders/temporal.frag</file>
-        <file>shaders/temporal.vert</file>
         <file>shaders/test.frag</file>
         <file>shaders/test.vert</file>
-        <file>shaders/colorluma.frag</file>
-        <file>shaders/colorluma.vert</file>
-        <file>shaders/hwavelet.frag</file>
-        <file>shaders/hwavelet.vert</file>
         <file>shaders/vwavelet.frag</file>
-        <file>shaders/vwavelet.vert</file>
+        <file>shaders/wavelet.frag</file>
     </qresource>
 </RCC>

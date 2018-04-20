@@ -58,7 +58,7 @@ private:
     std::shared_ptr<ColorVarianceBuffer> m_colorVarianceBuffer1, m_colorVarianceBuffer2;
 
     std::shared_ptr<CS123::GL::Shader> m_testShader;
-    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_temporalShader, m_waveletHorizontalShader, m_waveletVerticalShader, m_initColorLumaShader;
+    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_temporalShader, m_waveletHorizontalShader, m_waveletVerticalShader, m_waveletShader, m_initColorLumaShader;
     bool m_pipeline;
 
     CS123SceneGlobalData m_globalData;

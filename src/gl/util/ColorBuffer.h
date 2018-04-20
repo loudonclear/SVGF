@@ -12,10 +12,13 @@ public:
     void unbind() const;
 
     unsigned int getDirectTexture() const;
+    unsigned int getIndirectTexture() const;
+    unsigned int getAlbedoTexture() const;
+
 
 private:
     unsigned int cvBuffer;
-    unsigned int direct;
+    unsigned int direct, indirect, albedo;
 
     int m_width, m_height;
 };

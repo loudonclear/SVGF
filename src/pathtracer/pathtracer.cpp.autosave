@@ -150,7 +150,7 @@ glm::vec3 directLighting(const glm::vec3& hit, const glm::vec3& normal, const Sc
 
         IntersectionInfo i;
         if (scene.getBVH().getIntersection(Ray(hit + toLight*FLOAT_EPSILON, toLight), &i, false) && i.object == light) {
-            const Mesh * m = static_cast<const Mesh *>(i.object);
+            const Mesh * ,m = static_cast<const Mesh *>(i.object);
             const Triangle *t = static_cast<const Triangle *>(i.data);
             const tinyobj::material_t& mat = m->getMaterial(t->getIndex());
 
