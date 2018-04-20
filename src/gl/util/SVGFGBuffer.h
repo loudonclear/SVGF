@@ -10,12 +10,13 @@ public:
     void bind() const;
     void unbind() const;
 
-    void bindTextures() const;
+    unsigned int getDepthIDsTexture() const;
+    unsigned int getNormalTexture() const;
     void depthBufferCopy() const;
 
 private:
     unsigned int gBuffer;
-    unsigned int gDepthIds, gNormal;
+    unsigned int gDepthIDs, gNormal;
     unsigned int rboDepth;
 
     int m_width, m_height;

@@ -84,7 +84,7 @@ Mesh::~Mesh()
 void Mesh::render(std::shared_ptr<CS123::GL::Shader> &shader, const bool pipeline) const {
 
     if (pipeline) {
-        shader->setUniform("meshID", m_id);
+        shader->setUniform("meshID", static_cast<float>(m_id));
     }
 
     for (int i = 0; i < m_VAOs.size(); i++) {
@@ -96,7 +96,7 @@ void Mesh::render(std::shared_ptr<CS123::GL::Shader> &shader, const bool pipelin
             shader->setUniform("specular_color", glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]));
             shader->setUniform("shininess", mat.shininess);
         } else {
-            shader->setUniform("matID", i);
+            shader->setUniform("matID", static_cast<float>(m_id));
         }
 
         glBindVertexArray(m_VAOs.at(i));
