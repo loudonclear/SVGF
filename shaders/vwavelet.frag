@@ -20,6 +20,7 @@ const float h[5] = float[5](1.0/16.0, 1.0/4.0, 3.0/8.0, 1.0/4.0, 1.0/16.0);
 const float gaussKernel[9] = float[9](1.0/16.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/4.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/16.0);
 
 void main() {
+  vec3 debugCol = vec3(0.0,0.0,0.0);
 
     float pDepth = texture(gDepthIDs, uv).r;
     float pMeshID = texture(gDepthIDs, uv).g;
@@ -38,6 +39,10 @@ void main() {
     float v = 0.0;
     float weights = 0.0;
 
+    float z_minus = texture(gDepthIDs, uv - vec2(0.0, texelSize.y)).r;
+    float z_plus = texture(gDepthIDs, uv + vec2(0.0, texelSize.y)).r;
+    float grad_z = (z_plus - z_minus)/ (2.0*texelSize.y);
+
     for (int offset = -support; offset <= support; offset++) {
         vec2 loc = uv + vec2(0.0, step * offset * texelSize.y);
         float qMeshID = texture(gDepthIDs, loc).g;
@@ -52,7 +57,8 @@ void main() {
             float qLuminance = 0.0;//texture(luma, loc).r;
 
             float dz = pDepth - qDepth;
-            float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz) + epsilon)));
+            float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(grad_z * (uv.y - loc.y)) + epsilon)));
+            // float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz) + epsilon)));
 
             float wn = pow(max(0.0, dot(pNormal, qNormal)), sigmaN);
 
@@ -64,7 +70,6 @@ void main() {
             }
             float wl = min(1.0, exp(-abs(pLuminance - qLuminance) / (sigmaL * sqrt(gvl) + epsilon)));
             wl = 1.0;
-
             float w = wz * wn * wl;
             float weight = h[offset + support] * w;
 

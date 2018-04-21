@@ -39,6 +39,10 @@ void main() {
     float v = 0.0;
     float weights = 0.0;
 
+    float z_minus = texture(gDepthIDs, uv - vec2(texelSize.x, 0.0)).r;
+    float z_plus = texture(gDepthIDs, uv + vec2(texelSize.x, 0.0)).r;
+    float grad_z = (z_plus - z_minus)/ (2.0*texelSize.x);
+
     for (int offset = -support; offset <= support; offset++) {
         vec2 loc = uv + vec2(step * offset * texelSize.x, 0.0);
         float qMeshID = texture(gDepthIDs, loc).g;
@@ -53,7 +57,8 @@ void main() {
             float qLuminance = 0.0;//texture(luma, loc).r;
 
             float dz = pDepth - qDepth;
-            float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz) + epsilon)));
+            float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(grad_z * (uv.x - loc.x)) + epsilon)));
+            // float wz = min(1.0, exp(-abs(dz) / (sigmaZ * abs(dz) + epsilon)));
 
             float wn = pow(max(0.0, dot(pNormal, qNormal)), sigmaN);
 
@@ -65,7 +70,6 @@ void main() {
             }
             float wl = min(1.0, exp(-abs(pLuminance - qLuminance) / (sigmaL * sqrt(gvl) + epsilon)));
             wl = 1.0;
-
             float w = wz * wn * wl;
             float weight = h[offset + support] * w;
 

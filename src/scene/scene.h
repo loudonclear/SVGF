@@ -1,13 +1,17 @@
 #ifndef SCENE_H
 #define SCENE_H
 
-#include <QString>
-#include <memory>
+#include "QuaternionCamera.h"
 
 #include "BVH/BVH.h"
-#include "QuaternionCamera.h"
-#include "util/CS123SceneData.h"
+#include "gl/util/ColorBuffer.h"
 #include "shape/mesh.h"
+#include "util/CS123SceneData.h"
+#include "util/util.h"
+
+#include <QString>
+
+#include <memory>
 
 class PathTracer;
 class SVGFGBuffer;
@@ -27,7 +31,7 @@ public:
 
     static std::unique_ptr<Scene> load(QString filename, int width, int height);
 
-    void trace();
+    RenderBuffers trace(bool save = false);
     void render();
     bool& pipeline();
     const bool& pipeline() const;
@@ -66,7 +70,13 @@ private:
     CS123SceneGlobalData m_globalData;
     std::vector<CS123SceneLightData> m_lights;
 
-    void waveletPass(ResultBuffer *rb, unsigned int texture);
+    // Does spatial wavelet filtering using several iterations with increasing footprint.
+    // rb - the buffer in which to store the result
+    // texture - the texture to filter
+    // iterations - how many iterations of filters to apply
+    // separate - whether to use one horizontal and one vertical filter, or to use one huge 2d filter.
+    void waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, bool separate=true);
+    void recombineColor(const ColorBuffer& cb, const ResultBuffer& direct, const ResultBuffer& indirect);
 
     static bool parseTree(CS123SceneNode *root, Scene& scene, const std::string& baseDir);
     static void parseNode(CS123SceneNode *node, const glm::mat4x4 &parentTransform, std::vector<Object *> *objects, const std::string& baseDir, int &id);

@@ -31,7 +31,7 @@ void main() {
     float pMatID = texture(gDepthIDs, uv).b;
 
     vec3 pNormal = texture(gNormal, uv).rgb;
-
+    vec3 pColor = texture(colorVariance, uv).rgb;
     float pLuminance = 0.0;//texture(luma, uv).r;
 
 
@@ -41,6 +41,13 @@ void main() {
     vec3 c = vec3(0.0);
     float v = 0.0;
     float weights = 0.0;
+
+
+    float z_minus_x = texture(gDepthIDs, uv - vec2(texelSize.x, 0.0)).r;
+    float z_plus_x = texture(gDepthIDs, uv + vec2(texelSize.x, 0.0)).r;
+    float z_minus_y = texture(gDepthIDs, uv - vec2(0.0, texelSize.y)).r;
+    float z_plus_y = texture(gDepthIDs, uv + vec2(0.0, texelSize.y)).r;
+    vec2 grad_z = vec2(z_plus_x - z_minus_x, z_plus_y - z_minus_y) / (2.0 * texelSize);
 
     for (int offsetx = -support; offsetx <= support; offsetx++) {
         for (int offsety = -support; offsety <= support; offsety++) {
@@ -57,7 +64,9 @@ void main() {
                 float qLuminance = 0.0;//texture(luma, loc).r;
 
                 vec2 dz = vec2(pDepth - texture(gDepthIDs, vec2(loc.x, uv.y)).r, pDepth - texture(gDepthIDs, vec2(uv.x, loc.y)).r);
-                float wz = min(1.0, exp(-abs(pDepth - qDepth) / (sigmaZ * abs(dot(dz, uv - loc)) + epsilon)));
+                // float wz = min(1.0, exp(-abs(pDepth - qDepth) / (sigmaZ * abs(dot(dz, uv - loc)) + epsilon)));
+
+                float wz = min(1.0, exp(-abs(pDepth - qDepth) / (sigmaZ * abs(dot(grad_z, loc - uv)) + epsilon)));
 
                 float wn = pow(max(0.0, dot(pNormal, qNormal)), sigmaN);
 
@@ -67,9 +76,9 @@ void main() {
                         gvl += gaussKernel[x0 + 3*y0 + 4] * texture(colorVariance, loc + vec2(x0, y0) * texelSize).a;
                     }
                 }
-                float wl = min(1.0, exp(-abs(pLuminance - qLuminance)) / (sigmaL * sqrt(gvl) + epsilon));
-                wl = 1.0;
+                float wl = min(1.0, exp(-abs(pLuminance - qLuminance) / (sigmaL * sqrt(gvl) + epsilon)));
 
+                wl = 1.0;
                 float w = wz * wn * wl;
                 float weight = h[5*(offsety + support) + offsetx + support] * w;
 
