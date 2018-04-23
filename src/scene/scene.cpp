@@ -190,11 +190,11 @@ void Scene::render() {
         // INPUT: integrated color, variance, luminance
         // OUTPUT: 1st level filtered color, 5th level filtered color
 
-        ResultBuffer direct = ResultBuffer(width, height);
-        ResultBuffer indirect = ResultBuffer(width, height);
+        ResultBuffer direct(width, height);
+        ResultBuffer indirect(width, height);
 
         float integration_alpha = 0.2;
-        ResultBuffer direct_accumulated, indirect_accumulated;
+        // ResultBuffer direct_accumulated, indirect_accumulated;
 
         bool separate = false;
         // waveletPassAllChannels();
