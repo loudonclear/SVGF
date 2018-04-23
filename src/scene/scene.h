@@ -60,8 +60,9 @@ private:
     QuaternionCamera m_camera;
     std::shared_ptr<PathTracer> m_pathTracer;
 
-    std::shared_ptr<SVGFGBuffer> m_SVGFGBuffer;
+    std::shared_ptr<SVGFGBuffer> m_SVGFGBuffer, m_SVGFGBuffer_prev;
     std::shared_ptr<ColorVarianceBuffer> m_colorVarianceBuffer1, m_colorVarianceBuffer2;
+    std::unique_ptr<ColorVarianceBuffer> m_colorVarianceHistory;
 
     std::shared_ptr<CS123::GL::Shader> m_testShader;
     std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_temporalShader, m_waveletHorizontalShader, m_waveletVerticalShader, m_waveletShader, m_initColorLumaShader, m_reconstructionShader;

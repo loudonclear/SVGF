@@ -2,15 +2,22 @@
 
 #include <utility>
 
-namespace CS123 { namespace GL {
+using namespace CS123::GL;
 
-Texture2D::Texture2D(unsigned char *data, int width, int height, GLenum type)
-{
-    GLenum internalFormat = type == GL_FLOAT ? GL_RGBA32F : GL_RGBA;
+Texture2D::Texture2D(unsigned char *data, int width, int height,
+                     GLint internalFormat, GLenum format, GLenum type) {
+  bind();
+  glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type,
+               data);
+  unbind();
+}
 
-    bind();
-    glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, GL_RGBA, type, data);
-    unbind();
+Texture2D Texture2D::RGBAFloatTex(unsigned char *data, int width, int height) {
+  return Texture2D(data, width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT);
+}
+Texture2D Texture2D::UnsignedByteTex(unsigned char *data, int width,
+                                     int height) {
+  return Texture2D(data, width, height, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
 }
 
 void Texture2D::bind() const {
@@ -20,5 +27,3 @@ void Texture2D::bind() const {
 void Texture2D::unbind() const {
     glBindTexture(GL_TEXTURE_2D, 0);
 }
-
-}}

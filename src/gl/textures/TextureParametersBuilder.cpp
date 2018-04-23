@@ -17,5 +17,5 @@ void TextureParametersBuilder::setWrap(TextureParameters::WRAP_METHOD wrapMethod
 }
 
 TextureParameters TextureParametersBuilder::build() {
-    return TextureParameters(m_filterMethod, m_wrapMethod);
+  return {m_filterMethod, m_wrapMethod};
 }

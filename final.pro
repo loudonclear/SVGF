@@ -39,64 +39,44 @@ linux {
 
 SOURCES += \
     libs/glew-1.10.0/src/glew.c \
-    src/gl/shaders/Shader.cpp \
+    src/BVH/BBox.cpp \
+    src/BVH/BVH.cpp \
     src/gl/GLDebug.cpp \
-    src/gl/datatype/VBOAttribMarker.cpp \
-    src/gl/datatype/VBO.cpp \
+    src/gl/datatype/FBO.cpp \
     src/gl/datatype/IBO.cpp \
     src/gl/datatype/VAO.cpp \
-    src/gl/datatype/FBO.cpp \
+    src/gl/datatype/VBO.cpp \
+    src/gl/datatype/VBOAttribMarker.cpp \
+    src/gl/shaders/Shader.cpp \
+    src/gl/textures/DepthBuffer.cpp \
+    src/gl/textures/RenderBuffer.cpp \
     src/gl/textures/Texture.cpp \
     src/gl/textures/Texture2D.cpp \
     src/gl/textures/TextureParameters.cpp \
     src/gl/textures/TextureParametersBuilder.cpp \
-    src/gl/textures/RenderBuffer.cpp \
-    src/gl/textures/DepthBuffer.cpp \
+    src/gl/util/ColorBuffer.cpp \
+    src/gl/util/ColorHistoryBuffer.cpp \
+    src/gl/util/ColorVarianceBuffer.cpp \
     src/gl/util/FullScreenQuad.cpp \
-    src/ui/view.cpp \
-    src/ui/viewformat.cpp \
-    src/ui/mainwindow.cpp \
+    src/gl/util/ResourceLoader.cpp \
+    src/gl/util/ResultBuffer.cpp \
+    src/gl/util/SVGFGBuffer.cpp \
+    src/gl/util/openglshape.cpp \
     src/main.cpp \
+    src/pathtracer/pathtracer.cpp \
+    src/scene/QuaternionCamera.cpp \
+    src/scene/scene.cpp \
     src/scene/shape/mesh.cpp \
     src/scene/shape/triangle.cpp \
-    src/scene/scene.cpp \
-    src/BVH/BBox.cpp \
-    src/BVH/BVH.cpp \
+    src/ui/mainwindow.cpp \
+    src/ui/view.cpp \
+    src/ui/viewformat.cpp \
     src/util/CS123XmlSceneParser.cpp \
-    src/util/util.cpp \
-    src/gl/util/SVGFGBuffer.cpp \
-    src/pathtracer/pathtracer.cpp \
-    src/gl/util/ResourceLoader.cpp \
-    src/gl/util/openglshape.cpp \
-    src/scene/QuaternionCamera.cpp \
-    src/gl/util/ColorVarianceBuffer.cpp \
-    src/gl/util/ColorBuffer.cpp \
-    src/gl/util/ResultBuffer.cpp
+    src/util/util.cpp
 
 
 HEADERS += \
     libs/glew-1.10.0/include/GL/glew.h \
-    src/gl/shaders/Shader.h \
-    src/gl/GLDebug.h \
-    src/gl/shaders/ShaderAttribLocations.h \
-    src/gl/datatype/VBOAttribMarker.h \
-    src/gl/datatype/VBO.h \
-    src/gl/datatype/IBO.h \
-    src/gl/datatype/VAO.h \
-    src/gl/datatype/FBO.h \
-    src/gl/textures/Texture.h \
-    src/gl/textures/Texture2D.h \
-    src/gl/textures/TextureParameters.h \
-    src/gl/textures/TextureParametersBuilder.h \
-    src/gl/textures/RenderBuffer.h \
-    src/gl/textures/DepthBuffer.h \
-    src/gl/util/FullScreenQuad.h \
-    src/ui/view.h \
-    src/ui/viewformat.h \
-    src/ui/mainwindow.h \
-    src/scene/shape/mesh.h \
-    src/scene/shape/triangle.h \
-    src/scene/scene.h \
     src/BVH/BBox.h \
     src/BVH/BVH.h \
     src/BVH/IntersectionInfo.h \
@@ -105,21 +85,43 @@ HEADERS += \
     src/BVH/Ray.h \
     src/BVH/Stopwatch.h \
     src/BVH/vector3.h \
+    src/gl/GLDebug.h \
+    src/gl/datatype/FBO.h \
+    src/gl/datatype/IBO.h \
+    src/gl/datatype/VAO.h \
+    src/gl/datatype/VBO.h \
+    src/gl/datatype/VBOAttribMarker.h \
+    src/gl/shaders/Shader.h \
+    src/gl/shaders/ShaderAttribLocations.h \
+    src/gl/textures/DepthBuffer.h \
+    src/gl/textures/RenderBuffer.h \
+    src/gl/textures/Texture.h \
+    src/gl/textures/Texture2D.h \
+    src/gl/textures/TextureParameters.h \
+    src/gl/textures/TextureParametersBuilder.h \
+    src/gl/util/ColorBuffer.h \
+    src/gl/util/ColorHistoryBuffer.h \
+    src/gl/util/ColorVarianceBuffer.h \
+    src/gl/util/FullScreenQuad.h \
+    src/gl/util/ResourceLoader.h \
+    src/gl/util/ResultBuffer.h \
+    src/gl/util/SVGFGBuffer.h \
+    src/gl/util/openglshape.h \
+    src/gl/util/sphere.h \
+    src/pathtracer/pathtracer.h \
+    src/scene/QuaternionCamera.h \
+    src/scene/scene.h \
+    src/scene/shape/mesh.h \
+    src/scene/shape/triangle.h \
+    src/ui/mainwindow.h \
+    src/ui/view.h \
+    src/ui/viewformat.h \
     src/util/CS123Common.h \
     src/util/CS123ISceneParser.h \
     src/util/CS123SceneData.h \
     src/util/CS123XmlSceneParser.h \
     src/util/tiny_obj_loader.h \
-    src/util/util.h \
-    src/gl/util/SVGFGBuffer.h \
-    src/pathtracer/pathtracer.h \
-    src/gl/util/ResourceLoader.h \
-    src/gl/util/openglshape.h \
-    src/gl/util/sphere.h \
-    src/scene/QuaternionCamera.h \
-    src/gl/util/ColorVarianceBuffer.h \
-    src/gl/util/ColorBuffer.h \
-    src/gl/util/ResultBuffer.h
+    src/util/util.h
 
 
 

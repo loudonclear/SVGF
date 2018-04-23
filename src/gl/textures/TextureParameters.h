@@ -16,12 +16,9 @@ public:
     enum class WRAP_METHOD { CLAMP_TO_EDGE = GL_CLAMP_TO_EDGE,
                              REPEAT = GL_REPEAT };
 
+    // TextureParameters(FILTER_METHOD filterMethod, WRAP_METHOD wrapMethod);
+
     void applyTo(const Texture2D &texture);
-
-    friend class TextureParametersBuilder;
-
-private:
-    TextureParameters(FILTER_METHOD filterMethod, WRAP_METHOD wrapMethod);
 
     FILTER_METHOD m_filterMethod;
     WRAP_METHOD m_wrapMethod;

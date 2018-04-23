@@ -7,11 +7,11 @@
 namespace CS123 { namespace GL {
 
 
-TextureParameters::TextureParameters(FILTER_METHOD filterMethod, WRAP_METHOD wrapMethod) :
-    m_filterMethod(filterMethod),
-    m_wrapMethod(wrapMethod)
-{
-}
+// TextureParameters::TextureParameters(FILTER_METHOD filterMethod, WRAP_METHOD wrapMethod) :
+//     m_filterMethod(filterMethod),
+//     m_wrapMethod(wrapMethod)
+// {
+// }
 
 void TextureParameters::applyTo(const Texture2D &texture) {
     texture.bind();

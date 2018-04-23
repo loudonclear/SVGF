@@ -20,20 +20,27 @@ Texture::Texture(Texture &&that) :
     that.m_handle = 0;
 }
 
-Texture& Texture::operator=(Texture &&that) {
-    this->~Texture();
+Texture &Texture::operator=(Texture &&that) {
+  if (this != &that) {
+    clean();
     m_handle = that.m_handle;
     that.m_handle = 0;
-    return *this;
+  }
+  return *this;
 }
 
 Texture::~Texture()
 {
-    glDeleteTextures(1, &m_handle);
+  this->clean();
 }
 
 unsigned int Texture::id() const {
     return m_handle;
 }
+
+void Texture::clean() {
+  glDeleteTextures(1, &m_handle);
+}
+
 
 }}

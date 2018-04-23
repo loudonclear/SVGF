@@ -12,7 +12,7 @@ using namespace CS123::GL;
 
 FBO::FBO(int numberOfColorAttachments, DEPTH_STENCIL_ATTACHMENT attachmentType, int width, int height,
          TextureParameters::WRAP_METHOD wrapMethod,
-         TextureParameters::FILTER_METHOD filterMethod, GLenum type) :
+         TextureParameters::FILTER_METHOD filterMethod, GLint internalFormat, GLenum format, GLenum type) :
     m_depthStencilAttachmentType(attachmentType),
     m_handle(0),
     m_width(width),
@@ -20,7 +20,7 @@ FBO::FBO(int numberOfColorAttachments, DEPTH_STENCIL_ATTACHMENT attachmentType, 
 {
     glGenFramebuffers(1, &m_handle);
     bind();
-    generateColorAttachments(numberOfColorAttachments, wrapMethod, filterMethod, type);
+    generateColorAttachments(numberOfColorAttachments, wrapMethod, filterMethod, internalFormat, format, type);
 
     generateDepthStencilAttachment();
 
@@ -35,10 +35,10 @@ FBO::~FBO()
 }
 
 void FBO::generateColorAttachments(int count, TextureParameters::WRAP_METHOD wrapMethod,
-                                   TextureParameters::FILTER_METHOD filterMethod, GLenum type) {
+                                   TextureParameters::FILTER_METHOD filterMethod, GLint internalFormat, GLenum format, GLenum type) {
     std::vector<GLenum> buffers;
     for (int i = 0; i < count; i++) {
-        generateColorAttachment(i, wrapMethod, filterMethod, type);
+      generateColorAttachment(i, wrapMethod, filterMethod, internalFormat, format, type);
         buffers.push_back(GL_COLOR_ATTACHMENT0 + i);
     }
 
@@ -60,8 +60,8 @@ void FBO::generateDepthStencilAttachment() {
 }
 
 void FBO::generateColorAttachment(int i, TextureParameters::WRAP_METHOD wrapMethod,
-                                  TextureParameters::FILTER_METHOD filterMethod, GLenum type) {
-    Texture2D tex(nullptr, m_width, m_height, type);
+                                  TextureParameters::FILTER_METHOD filterMethod, GLint internalFormat, GLenum format, GLenum type) {
+  Texture2D tex(nullptr, m_width, m_height, internalFormat, format, type);
     TextureParametersBuilder builder;
 
     builder.setFilter(filterMethod);
@@ -96,4 +96,3 @@ const RenderBuffer& FBO::getDepthStencilAttachment() const {
 unsigned int FBO::getId() {
     return m_handle;
 }
-

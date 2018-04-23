@@ -19,6 +19,9 @@ public:
 
 protected:
     unsigned int m_handle;
+
+    // delete the underlying texture
+    void clean();
 };
 
 }}

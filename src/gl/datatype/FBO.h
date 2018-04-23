@@ -19,7 +19,7 @@ public:
     FBO(int numberOfColorAttachments, DEPTH_STENCIL_ATTACHMENT attachmentType, int m_width, int m_height,
         TextureParameters::WRAP_METHOD wrapMethod = TextureParameters::WRAP_METHOD::REPEAT,
         TextureParameters::FILTER_METHOD filterMethod = TextureParameters::FILTER_METHOD::LINEAR,
-        GLenum type = GL_UNSIGNED_BYTE);
+        GLint internalFormat = GL_R8, GLenum format = GL_RED, GLenum type = GL_UNSIGNED_BYTE);
     ~FBO();
 
     void bind();
@@ -33,9 +33,9 @@ public:
 
 private:
     void generateColorAttachments(int count, TextureParameters::WRAP_METHOD wrapMethod,
-                                  TextureParameters::FILTER_METHOD filterMethod, GLenum type);
+                                  TextureParameters::FILTER_METHOD filterMethod, GLint internalFormat, GLenum format, GLenum type);
     void generateColorAttachment(int i, TextureParameters::WRAP_METHOD wrapMethod,
-                                 TextureParameters::FILTER_METHOD filterMethod, GLenum type);
+                                 TextureParameters::FILTER_METHOD filterMethod, GLint internalFormat, GLenum format, GLenum type);
     void generateDepthStencilAttachment();
 
     std::vector<Texture2D> m_colorAttachments;

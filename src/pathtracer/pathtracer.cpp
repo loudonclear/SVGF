@@ -27,7 +27,7 @@ class RenderTask : public QRunnable {
 public:
     RenderTask(PathTracer *tracer, const Scene& scene, RenderBuffers *buffs, glm::mat4x4 &invViewMat, int x0, int y0, int x1, int y1) : m_tracer(tracer), m_scene(scene), m_buffs(buffs), m_invViewMat(invViewMat), m_x0(x0), m_y0(y0), m_x1(x1), m_y1(y1) {}
     PathTracer *m_tracer;
-    const Scene m_scene;
+    const Scene& m_scene;
     RenderBuffers *m_buffs;
     glm::mat4x4 m_invViewMat;
     int m_x0, m_y0, m_x1, m_y1;

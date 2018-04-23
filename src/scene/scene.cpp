@@ -42,8 +42,10 @@ Scene::Scene(int width, int height, unsigned int samples) : width(width), height
 
     m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
+    m_SVGFGBuffer_prev = std::make_shared<SVGFGBuffer>(width, height);
     m_colorVarianceBuffer1 = std::make_shared<ColorVarianceBuffer>(width, height);
     m_colorVarianceBuffer2 = std::make_shared<ColorVarianceBuffer>(width, height);
+    m_colorVarianceHistory = std::make_unique<ColorVarianceBuffer>(width, height);
 }
 
 
@@ -191,7 +193,11 @@ void Scene::render() {
         ResultBuffer direct = ResultBuffer(width, height);
         ResultBuffer indirect = ResultBuffer(width, height);
 
+        float integration_alpha = 0.2;
+        ResultBuffer direct_accumulated, indirect_accumulated;
+
         bool separate = false;
+        // waveletPassAllChannels();
         waveletPass(direct, cb.getDirectTexture(), 5, separate);
         waveletPass(indirect, cb.getIndirectTexture(), 5, separate);
 
@@ -216,6 +222,9 @@ void Scene::render() {
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         float duration = duration_cast<milliseconds>( t2 - t1 ).count() / 1000.0;
         std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
+
+        // Swap current and previous G buffers
+        m_SVGFGBuffer.swap(m_SVGFGBuffer_prev);
     } else {
         // Visualization
         m_defaultShader->bind();
