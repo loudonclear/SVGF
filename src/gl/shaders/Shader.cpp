@@ -19,6 +19,19 @@ Shader::Shader(const std::string &vertexSource, const std::string &fragmentSourc
     shaders.push_back(createFragmentShaderFromSource(fragmentSource));
     buildShaderProgramFromShaders(shaders);
     discoverShaderData();
+
+    #ifdef DEBUG
+    // Print out which uniforms and textures shader has picked up.
+    std::cout << "**** "  << std::endl;
+    for(const auto& kv : m_uniforms){
+      std::cout << kv.first << " --> " << kv.second << std::endl;
+    }
+    std::cout << "*** TEX TEX "  << std::endl;
+    for(const auto& kv : m_textureLocations){
+      std::cout << kv.first << " --> " << kv.second << std::endl;
+    }
+    #endif
+
 }
 
 Shader::Shader(const std::string &vertexSource, const std::string &geometrySource, const std::string &fragmentSource) {

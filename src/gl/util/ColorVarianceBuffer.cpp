@@ -1,42 +1,30 @@
 #include "ColorVarianceBuffer.h"
 
-#include <iostream>
+#include "Buffer.h"
+
+#include "gl/textures/TextureParameters.h"
+
 #include <GL/glew.h>
 
-ColorVarianceBuffer::ColorVarianceBuffer(int width, int height) : m_width(width), m_height(height)
-{
-    glGenFramebuffers(1, &cvBuffer);
-    bind();
+#include <iostream>
 
-    // Color, Variance Buffer
-    glGenTextures(1, &colorVariance);
-    glBindTexture(GL_TEXTURE_2D, colorVariance);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, colorVariance, 0);
+using namespace CS123::GL;
 
-    unsigned int attachments[1] = {GL_COLOR_ATTACHMENT0};
-    glDrawBuffers(1, attachments);
+ColorVarianceBuffer::ColorVarianceBuffer(int width, int height)
+    : Buffer(width, height),
+      m_colorVariance(this->makeTextureAndAttach(GL_FLOAT, 0)) {
+  bind();
 
-    auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Framebuffer not complete: " << status << std::endl;
+  unsigned int attachments[1] = {GL_COLOR_ATTACHMENT0};
+  glDrawBuffers(1, attachments);
 
-    unbind();
+  auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+  if (status != GL_FRAMEBUFFER_COMPLETE)
+    std::cout << "Framebuffer not complete: " << status << std::endl;
+
+  unbind();
 }
 
-void ColorVarianceBuffer::bind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, cvBuffer);
-    glViewport(0, 0, m_width, m_height);
-}
-
-void ColorVarianceBuffer::unbind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-unsigned int ColorVarianceBuffer::getColorVarianceTexture() const {
-    return colorVariance;
+const Texture2D &ColorVarianceBuffer::color_variance_texture() const {
+  return m_colorVariance;
 }

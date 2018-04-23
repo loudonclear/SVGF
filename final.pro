@@ -54,6 +54,7 @@ SOURCES += \
     src/gl/textures/Texture2D.cpp \
     src/gl/textures/TextureParameters.cpp \
     src/gl/textures/TextureParametersBuilder.cpp \
+    src/gl/util/Buffer.cpp \
     src/gl/util/ColorBuffer.cpp \
     src/gl/util/ColorHistoryBuffer.cpp \
     src/gl/util/ColorVarianceBuffer.cpp \
@@ -99,6 +100,7 @@ HEADERS += \
     src/gl/textures/Texture2D.h \
     src/gl/textures/TextureParameters.h \
     src/gl/textures/TextureParametersBuilder.h \
+    src/gl/util/Buffer.h \
     src/gl/util/ColorBuffer.h \
     src/gl/util/ColorHistoryBuffer.h \
     src/gl/util/ColorVarianceBuffer.h \

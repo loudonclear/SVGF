@@ -196,7 +196,7 @@ void Scene::render() {
         float integration_alpha = 0.2;
         // ResultBuffer direct_accumulated, indirect_accumulated;
 
-        bool separate = false;
+        bool separate = true;
         // waveletPassAllChannels();
         waveletPass(direct, cb.getDirectTexture(), 5, separate);
         waveletPass(indirect, cb.getIndirectTexture(), 5, separate);
@@ -251,32 +251,30 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
     // Initial color and luma
     m_colorVarianceBuffer1->bind();
     m_initColorLumaShader->bind();
+
     GLint cLoc = glGetUniformLocation(m_initColorLumaShader->getID(), "color");
     glUniform1i(cLoc, 0);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, texture);
+
     renderQuad();
     m_initColorLumaShader->unbind();
     m_colorVarianceBuffer1->unbind();
 
     GLint cvLoc, gdLoc, nLoc;
     if (separate) {
-        // Blit between two FBOs for colorVariance
+      // Blit between two FBOs for colorVariance
         m_colorVarianceBuffer2->bind();
         m_waveletHorizontalShader->bind();
-        cvLoc = glGetUniformLocation(m_waveletHorizontalShader->getID(),
-                                     "colorVariance");
+        m_waveletHorizontalShader->setTexture(
+            "colorVariance", m_colorVarianceBuffer1->color_variance_texture());
         gdLoc = glGetUniformLocation(m_waveletHorizontalShader->getID(),
                                      "gDepthIDs");
+        glUniform1i(gdLoc, 1);
         nLoc =
             glGetUniformLocation(m_waveletHorizontalShader->getID(), "gNormal");
-        glUniform1i(cvLoc, 0);
-        glUniform1i(gdLoc, 1);
         glUniform1i(nLoc, 2);
         m_waveletHorizontalShader->setUniform("level", 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D,
-                      m_colorVarianceBuffer1->getColorVarianceTexture());
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, m_SVGFGBuffer->getDepthIDsTexture());
         glActiveTexture(GL_TEXTURE2);
@@ -287,19 +285,15 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
 
         m_colorVarianceBuffer1->bind();
         m_waveletVerticalShader->bind();
-        cvLoc = glGetUniformLocation(m_waveletVerticalShader->getID(),
-                                     "colorVariance");
+        m_waveletVerticalShader->setTexture(
+            "colorVariance", m_colorVarianceBuffer2->color_variance_texture());
         gdLoc =
             glGetUniformLocation(m_waveletVerticalShader->getID(), "gDepthIDs");
+         glUniform1i(gdLoc, 1);
         nLoc =
             glGetUniformLocation(m_waveletVerticalShader->getID(), "gNormal");
-        glUniform1i(cvLoc, 0);
-        glUniform1i(gdLoc, 1);
         glUniform1i(nLoc, 2);
         m_waveletVerticalShader->setUniform("level", 0);
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D,
-                      m_colorVarianceBuffer2->getColorVarianceTexture());
         renderQuad();
     }
     else {
@@ -310,14 +304,14 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
         gdLoc = glGetUniformLocation(m_waveletShader->getID(),
                                      "gDepthIDs");
         nLoc =
-            glGetUniformLocation(m_waveletShader->getID(), "gNormal");
+          glGetUniformLocation(m_waveletShader->getID(), "gNormal");
         glUniform1i(cvLoc, 0);
         glUniform1i(gdLoc, 1);
         glUniform1i(nLoc, 2);
         m_waveletShader->setUniform("level", 0);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D,
-                      m_colorVarianceBuffer1->getColorVarianceTexture());
+                      m_colorVarianceBuffer1->color_variance_texture().id());
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, m_SVGFGBuffer->getDepthIDsTexture());
         glActiveTexture(GL_TEXTURE2);
@@ -335,7 +329,7 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
         m_waveletHorizontalShader->setUniform("level", i);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D,
-                      m_colorVarianceBuffer1->getColorVarianceTexture());
+                      m_colorVarianceBuffer1->color_variance_texture().id());
         renderQuad();
 
         m_colorVarianceBuffer1->bind();
@@ -343,7 +337,7 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
         m_waveletVerticalShader->setUniform("level", i);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D,
-                      m_colorVarianceBuffer2->getColorVarianceTexture());
+                      m_colorVarianceBuffer2->color_variance_texture().id());
         renderQuad();
       }
     } else {
@@ -363,7 +357,7 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
         m_waveletShader->setUniform("level", i);
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D,
-                      cvb_output->getColorVarianceTexture());
+                      cvb_output->color_variance_texture().id());
         renderQuad();
 
       }
@@ -374,7 +368,7 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
     m_testShader->bind();
     glActiveTexture(GL_TEXTURE0);
     // TODO whether this is 1 or 2 depends on number of iterations
-    glBindTexture(GL_TEXTURE_2D, m_colorVarianceBuffer2->getColorVarianceTexture());
+    glBindTexture(GL_TEXTURE_2D, m_colorVarianceBuffer2->color_variance_texture().id());
     cvLoc = glGetUniformLocation(m_testShader->getID(), "color");
     glUniform1i(cvLoc, 0);
     renderQuad();
