@@ -11,7 +11,7 @@ public:
   Buffer(int width, int height);
 
   void bind() const;
-  void unbind() const;
+  static void unbind(); // Unbinds whatever current framebuffer is bound
   unsigned int id() const;
 
 protected:

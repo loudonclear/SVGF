@@ -30,7 +30,7 @@ ColorHistoryBuffer::ColorHistoryBuffer(int width, int height)
     std::cout << "Framebuffer not complete: " << status << std::endl;
   }
 
-  unbind();
+  Buffer::unbind();
 }
 
 const Texture2D &ColorHistoryBuffer::direct_texture() const { return m_direct; }

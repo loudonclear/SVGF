@@ -16,7 +16,7 @@ void Buffer::bind() const {
   glViewport(0, 0, m_width, m_height);
 }
 
-void Buffer::unbind() const { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
+void Buffer::unbind()  { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 unsigned int Buffer::id() const { return m_id; }
 

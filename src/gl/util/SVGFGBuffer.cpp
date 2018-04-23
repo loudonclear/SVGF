@@ -1,69 +1,43 @@
 #include "SVGFGBuffer.h"
 
-#include <iostream>
 #include <GL/glew.h>
+#include <iostream>
 
-SVGFGBuffer::SVGFGBuffer(int width, int height) : m_width(width), m_height(height)
+using namespace CS123::GL;
+
+SVGFGBuffer::SVGFGBuffer(int width, int height)
+    : Buffer(width, height),
+      gDepthIDs(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 0)),
+      gNormal(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 1))
+
 {
-    glGenFramebuffers(1, &gBuffer);
-    bind();
+  bind();
 
-    // Depth, Mesh/Mat ID Buffer
-    glGenTextures(1, &gDepthIDs);
-    glBindTexture(GL_TEXTURE_2D, gDepthIDs);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, gDepthIDs, 0);
+  unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, attachments);
 
-    // Normal Buffer
-    glGenTextures(1, &gNormal);
-    glBindTexture(GL_TEXTURE_2D, gNormal);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, gNormal, 0);
+  glGenRenderbuffers(1, &rboDepth);
+  glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
+  glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
+  glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                            GL_RENDERBUFFER, rboDepth);
 
-    unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
-    glDrawBuffers(2, attachments);
+  auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+  if (status != GL_FRAMEBUFFER_COMPLETE) {
+    std::cout << "Framebuffer not complete: " << status << std::endl;
+  }
 
-    glGenRenderbuffers(1, &rboDepth);
-    glBindRenderbuffer(GL_RENDERBUFFER, rboDepth);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, width, height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboDepth);
-
-
-    auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if (status != GL_FRAMEBUFFER_COMPLETE)
-        std::cout << "Framebuffer not complete: " << status << std::endl;
-
-    unbind();
+  Buffer::unbind();
 }
 
-void SVGFGBuffer::bind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, gBuffer);
-    glViewport(0, 0, m_width, m_height);
-}
+const Texture2D &SVGFGBuffer::depth_ids_texture() const { return gDepthIDs; }
 
-void SVGFGBuffer::unbind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
+const Texture2D &SVGFGBuffer::normal_texture() const { return gNormal; }
 
-unsigned int SVGFGBuffer::getDepthIDsTexture() const {
-    return gDepthIDs;
-}
-
-unsigned int SVGFGBuffer::getNormalTexture() const {
-    return gNormal;
-}
-
-void SVGFGBuffer::depthBufferCopy() const {
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-    glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
+// void SVGFGBuffer::depth_buffer_copy() const {
+//     glBindFramebuffer(GL_READ_FRAMEBUFFER, gBuffer);
+//     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+//     glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height,
+//     GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+//     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+// }

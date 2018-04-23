@@ -22,7 +22,7 @@ ColorVarianceBuffer::ColorVarianceBuffer(int width, int height)
   if (status != GL_FRAMEBUFFER_COMPLETE)
     std::cout << "Framebuffer not complete: " << status << std::endl;
 
-  unbind();
+  Buffer::unbind();
 }
 
 const Texture2D &ColorVarianceBuffer::color_variance_texture() const {
