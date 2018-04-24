@@ -1,42 +1,27 @@
+#include "Buffer.h"
 #include "ResultBuffer.h"
 
-#include <iostream>
+#include "gl/textures/Texture2D.h"
+
 #include <GL/glew.h>
+#include <iostream>
 
-ResultBuffer::ResultBuffer(int width, int height) : m_width(width), m_height(height)
+using namespace CS123::GL;
+
+ResultBuffer::ResultBuffer(int width, int height) :
+  Buffer(width, height),
+  m_color(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 0))
 {
-    glGenFramebuffers(1, &cBuffer);
     bind();
-
-    // color Color
-    glGenTextures(1, &color);
-    glBindTexture(GL_TEXTURE_2D, color);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, NULL);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, color, 0);
-
     unsigned int attachments[1] = {GL_COLOR_ATTACHMENT0};
     glDrawBuffers(1, attachments);
 
     auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete: " << status << std::endl;
-
     unbind();
 }
 
-void ResultBuffer::bind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, cBuffer);
-    glViewport(0, 0, m_width, m_height);
-}
-
-void ResultBuffer::unbind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
-unsigned int ResultBuffer::getColorTexture() const {
-    return color;
+const Texture2D& ResultBuffer::color_texture() const {
+    return m_color;
 }

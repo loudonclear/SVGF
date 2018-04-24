@@ -202,23 +202,6 @@ void Scene::render() {
         accumulate(*m_directHistory, cb.getDirectTexture(), direct_accumulated, integration_alpha);
         accumulate(*m_indirectHistory, cb.getIndirectTexture(), indirect_accumulated, integration_alpha);
 
-        /* Test of accumulation -- write direct texture into history buffer  */
-        m_directHistory->bind();
-        m_updateHistoryShader->bind();
-        // ideally new_col would be filtered input
-         m_updateHistoryShader->setTexture("new_col", direct_accumulated.color_variance_texture());
-        //m_updateHistoryShader->setTexture("new_col", cb.getDirectTexture());
-        // Texture contains the original "history length" data
-        m_updateHistoryShader->setTexture("col_history", direct_accumulated.color_variance_texture());
-        renderQuad();
-        m_directHistory->unbind();
-
-        // Code to display a given buffer. This could be whack, although it was working at other times
-        Buffer::unbind();
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_directHistory->id());
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-        Buffer::unbind();
 
         // TODO: Variance estimation
         // INPUT: integrated moments
@@ -228,12 +211,11 @@ void Scene::render() {
         // TODO: Wavelet filter
         // INPUT: integrated color, variance, luminance
         // OUTPUT: 1st level filtered color, 5th level filtered color
-
-        // bool separate = true;
-        // ResultBuffer direct(width, height);
-        // ResultBuffer indirect(width, height);
-        // waveletPass(direct, direct_accumulated.color_variance_texture(), *m_directHistory, 5, separate);
-        // waveletPass(indirect, indirect_accumulated.color_variance_texture(), *m_indirectHistory, 5, separate);
+        bool separate = true;
+        ResultBuffer direct(width, height);
+        ResultBuffer indirect(width, height);
+        waveletPass(direct, direct_accumulated.color_variance_texture(), *m_directHistory, 5, separate);
+        waveletPass(indirect, indirect_accumulated.color_variance_texture(), *m_indirectHistory, 5, separate);
 
         // TODO: Update color and moments history
         // INPUT: 1st level filtered color, integrated moments
@@ -243,11 +225,15 @@ void Scene::render() {
         // TODO: Reconstruction
         // INPUT: direct/indirect lighting, 5th level filtered color
         // OUTPUT: combined light and primary albedo
-        // this->recombineColor(cb, direct, indirect);
+        this->recombineColor(cb, direct, indirect);
+
 
         // TODO: Post-processing (tone mapping, temporal antialiasing)
         // INPUT: combined light and primary albedo
         // OUTPUT: rendered image
+
+        // cb.display();
+
 
         std::cout << "End frame" << std::endl;
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
@@ -278,6 +264,15 @@ void Scene::render() {
 
 }
 
+void Scene::flip_rgba_texture(const CS123::GL::Texture2D &tex, Buffer &output_buff) {
+  output_buff.bind();
+  m_initColorLumaShader->bind();
+  m_initColorLumaShader->setTexture("color", tex);
+  renderQuad();
+  m_initColorLumaShader->unbind();
+  output_buff.unbind();
+}
+
 void Scene::accumulate(ColorHistoryBuffer &history,
                        const Texture2D &new_color_tex,
                        ColorVarianceBuffer &accumulator, float alpha) {
@@ -286,8 +281,8 @@ void Scene::accumulate(ColorHistoryBuffer &history,
   m_temporalAccumulationShader->setUniform("alpha", alpha);
   m_temporalAccumulationShader->setTexture("col_history",
                                            history.color_history());
-  m_temporalAccumulationShader->setTexture("moments", history.moments());
   m_temporalAccumulationShader->setTexture("current_color", new_color_tex);
+  m_temporalAccumulationShader->setTexture("moments", history.moments());
   renderQuad();
   m_temporalAccumulationShader->unbind();
   accumulator.unbind();
@@ -295,12 +290,7 @@ void Scene::accumulate(ColorHistoryBuffer &history,
 
 void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistoryBuffer& history, int iterations, bool separate) {
     // Initial color and luma
-    m_colorVarianceBuffer1->bind();
-    m_initColorLumaShader->bind();
-    m_initColorLumaShader->setTexture("color", texture);
-    renderQuad();
-    m_initColorLumaShader->unbind();
-    m_colorVarianceBuffer1->unbind();
+    flip_rgba_texture(texture, *m_colorVarianceBuffer1);
 
     if (separate) {
       // Blit between two FBOs for colorVariance
@@ -335,13 +325,7 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
 
     // TODO XXX non-separated filter uses colorvariancebufer2 instead of 1
     // TODO: Store 1st level filtered color
-    history.bind();
-    m_updateHistoryShader->bind();
-    m_updateHistoryShader->setTexture("new_col", m_colorVarianceBuffer1->color_variance_texture());
-    // Texture contains the original "history length" data
-    m_updateHistoryShader->setTexture("col_history", texture);
-    renderQuad();
-    history.unbind();
+    this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), history);
 
     if (separate) {
       for (int i = 1; i < iterations; i++) {
@@ -376,29 +360,17 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
         renderQuad();
       }
     }
-    rb.bind();
-    m_testShader->bind();
-    m_testShader->setTexture("color", m_colorVarianceBuffer2->color_variance_texture());
-    renderQuad();
-    m_testShader->unbind();
-    rb.unbind();
+    this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), rb);
 }
 
 void Scene::recombineColor(const ColorBuffer &cb, const ResultBuffer &direct,
                            const ResultBuffer &indirect) {
+     // output to screen
+     Buffer::unbind();
      m_reconstructionShader->bind();
+     m_reconstructionShader->setTexture("direct", direct.color_texture());
+     m_reconstructionShader->setTexture("indirect", indirect.color_texture());
      m_reconstructionShader->setTexture("albedo", cb.getAlbedoTexture());
-     GLint dLoc = glGetUniformLocation(m_reconstructionShader->getID(), "direct");
-     glUniform1i(dLoc, 0);
-     GLint idLoc =
-         glGetUniformLocation(m_reconstructionShader->getID(), "indirect");
-     glUniform1i(idLoc, 1);
-
-     glActiveTexture(GL_TEXTURE0);
-     glBindTexture(GL_TEXTURE_2D, direct.getColorTexture());
-     glActiveTexture(GL_TEXTURE1);
-     glBindTexture(GL_TEXTURE_2D, indirect.getColorTexture());
-
      renderQuad();
      m_reconstructionShader->unbind();
 }

@@ -85,4 +85,7 @@ void main() {
     } else {
         cvnext = texture(colorVariance, uv).rgba;
     }
+    // if(any(isnan(cvnext))){
+    //   cvnext.r = 1.0;
+    // }
 }

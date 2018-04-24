@@ -5,6 +5,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <stdexcept>
 
 #include "GL/glew.h"
 #include "glm/glm.hpp"
@@ -15,6 +16,12 @@ class Texture1D;
 class Texture2D;
 class Texture3D;
 class TextureCube;
+
+class shader_exception : public std::runtime_error {
+public:
+  shader_exception(const std::string &what_arg)
+      : std::runtime_error("shader exception: " + what_arg) {}
+};
 
 class Shader {
 public:
@@ -71,6 +78,7 @@ public:
     GLuint getID() const { return m_programID; }
 
 private:
+    void clear(); // clears the gl program. Used in deletion/move.
 
     GLuint createFragmentShaderFromSource(const std::string &source);
     GLuint createGeometryShaderFromSource(const std::string &source);

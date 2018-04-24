@@ -8,6 +8,61 @@
 #include <algorithm>
 #include <iostream>
 
+std::unique_ptr<glm::vec3[]> RenderBuffers::recombined() const {
+  auto out = std::make_unique<glm::vec3[]>(this->size());
+  for (std::size_t i = 0; i < this->size(); ++i) {
+    out[i] = (m_direct[i] + m_indirect[i]) * m_albedo[i];
+  }
+  return out;
+}
+
+
+RenderBuffers::Element& RenderBuffers::Element::operator=(const RenderBuffers::Slice& sl){
+  m_albedo = sl.albedo();
+  m_direct = sl.direct();
+  m_indirect = sl.indirect();
+  m_full = sl.full();
+  return *this;
+}
+
+RenderBuffers::Element &RenderBuffers::Element::operator+=(const RenderBuffers::Element &e) {
+  m_albedo += e.m_albedo;
+  m_direct += e.m_direct;
+  m_indirect += e.m_indirect;
+  m_full += e.m_full;
+  return *this;
+}
+RenderBuffers::Element &RenderBuffers::Element::operator/=(float f) {
+  m_albedo /= f;
+  m_direct /= f;
+  m_indirect /= f;
+  m_full /= f;
+  return *this;
+}
+
+bool RenderBuffers::Element::operator==(const RenderBuffers::Element &e) const {
+  bool b = true;
+  b &= (m_albedo == e.m_albedo);
+  b &= (m_direct == e.m_direct);
+  b &= (m_indirect == e.m_indirect);
+  b &= (m_full == e.m_full);
+  return b;
+}
+
+bool RenderBuffers::Element::operator!=(const RenderBuffers::Element& e) const {
+  return !(*this == e);
+}
+
+// returns true if ANY elements are NaN
+bool RenderBuffers::Element::isnan() const {
+  return glm::any(glm::isnan(m_albedo + m_direct + m_indirect + m_full));
+}
+
+RenderBuffers::Element RenderBuffers::Element::zero() {
+  return {glm::vec3(0.0), glm::vec3(0.0), glm::vec3(0.0), glm::vec3(0.0)};
+}
+
+
 void toneMap(QRgb *imageData, glm::vec3 *intensityValues, std::size_t size) {
   auto tonemap_lambda = [](const glm::vec3 &v) {
     return qRgb(REAL2byte(v.x / (v.x + 1.f)), REAL2byte(v.y / (v.y + 1.f)),

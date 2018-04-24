@@ -21,7 +21,7 @@ Shader::Shader(const std::string &vertexSource, const std::string &fragmentSourc
     buildShaderProgramFromShaders(shaders);
     discoverShaderData();
 
-    #ifdef DEBUG
+    #ifndef NDEBUG
     // Print out which uniforms and textures shader has picked up.
     std::cout << "**** "  << std::endl;
     for(const auto& kv : m_uniforms){
@@ -47,27 +47,37 @@ Shader::Shader(const std::string &vertexSource, const std::string &geometrySourc
 
 Shader::~Shader()
 {
-    glDeleteProgram(m_programID);
+    this->clear();
 }
 
 Shader::Shader(Shader &&that) :
     m_programID(that.m_programID),
     m_attributes(std::move(that.m_attributes)),
-    m_uniforms(std::move(that.m_uniforms))
+    m_uniforms(std::move(that.m_uniforms)),
+    m_uniformArrays(std::move(that.m_uniformArrays)),
+    m_textureLocations(std::move(that.m_textureLocations)),
+    m_textureSlots(std::move(that.m_textureSlots))
 {
     that.m_programID = 0;
 }
 
 Shader& Shader::operator=(Shader &&that) {
-    this->~Shader();
+    this->clear();
 
     m_programID = that.m_programID;
     m_attributes = std::move(that.m_attributes);
     m_uniforms = std::move(that.m_uniforms);
+    m_uniformArrays = std::move(that.m_uniformArrays);
+    m_textureLocations = std::move(that.m_textureLocations);
+    m_textureSlots = std::move(that.m_textureSlots);
 
     that.m_programID = 0;
 
     return *this;
+}
+
+void Shader::clear() {
+  glDeleteProgram(m_programID);
 }
 
 Shader Shader::from_files(const std::string& vert, const std::string& frag, const std::string& dir){
@@ -205,12 +215,12 @@ void Shader::setUniformArrayByIndex(const std::string &name, const glm::mat4 &ma
 void Shader::setTexture(const std::string &name, const Texture1D &t) {}
 
 void Shader::setTexture(const std::string &name, const Texture2D &t) {
-    GLint location = m_textureLocations[name];
-    GLint slot = m_textureSlots[location];
-    //fprintf(stderr, "Location %d, slot %d\n", location, slot);
-    glActiveTexture(GL_TEXTURE0 + slot);
-    glUniform1i(location, slot);
-    t.bind();
+  GLint location = m_textureLocations.at(name);
+  GLint slot = m_textureSlots.at(location);
+  // fprintf(stderr, "Location %d, slot %d\n", location, slot);
+  glActiveTexture(GL_TEXTURE0 + slot);
+  glUniform1i(location, slot);
+  t.bind();
 }
 
 void Shader::setTexture(const std::string &name, const Texture3D &t) {}

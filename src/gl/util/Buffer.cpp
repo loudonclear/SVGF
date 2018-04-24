@@ -24,6 +24,14 @@ void Buffer::unbind()  { glBindFramebuffer(GL_FRAMEBUFFER, 0); }
 
 unsigned int Buffer::id() const { return m_id; }
 
+int Buffer::width() const {
+  return m_width;
+}
+
+int Buffer::height() const {
+  return m_height;
+}
+
 // helper function for choosing between two common types of textures
 // (16-bit float RBGA and uint8 array) 16-bit float is returned if
 // type == GL_FLOAT, uint8 is returned otherwise.
@@ -39,6 +47,18 @@ void determineFormat(GLint &internalFormat, GLenum &format, GLenum &type) {
   }
 }
 
+void Buffer::display(GLenum attachment) {
+  Buffer::unbind();
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_id);
+  int old_read_attach;
+  glGetIntegerv(GL_READ_BUFFER, &old_read_attach);
+  glReadBuffer(attachment);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height,
+                    GL_COLOR_BUFFER_BIT, GL_NEAREST);
+  glReadBuffer(static_cast<GLenum>(old_read_attach));
+  Buffer::unbind();
+}
 
 Texture2D Buffer::makeTexture(GLint internalFormat, GLenum format,
                               GLenum type, void *data) {

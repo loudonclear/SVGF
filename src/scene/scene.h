@@ -77,8 +77,8 @@ private:
 
     // convenience function for loading all the shaders.
     void init_shaders();
-
-  void accumulate(ColorHistoryBuffer& history, const CS123::GL::Texture2D& new_color_tex, ColorVarianceBuffer& accumulator, float alpha);
+    void flip_rgba_texture(const CS123::GL::Texture2D& tex, Buffer& output_buff);
+    void accumulate(ColorHistoryBuffer& history, const CS123::GL::Texture2D& new_color_tex, ColorVarianceBuffer& accumulator, float alpha);
 
     // Does spatial wavelet filtering using several iterations with increasing footprint.
     // rb - the buffer in which to store the result

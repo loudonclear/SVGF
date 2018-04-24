@@ -14,5 +14,4 @@ void main() {
 
   // col_out = vec4(1 - (c.r-c_old.r), 1 - (c.g-c_old.g), 1 - (c.b-c_old.b), l);
   col_out = vec4(c.r, c.g, c.b, l);
-  // col_out = c;
 }

@@ -27,37 +27,23 @@ public:
 
   // creates a buffer for albedo * (direct + indirect)
   // Ideally, this should be the same as full()
-  std::unique_ptr<glm::vec3[]> recombined() const {
-    auto out = std::make_unique<glm::vec3[]>(this->size());
-    for (std::size_t i = 0; i < this->size(); ++i) {
-      out[i] = (m_direct[i] + m_indirect[i]) * m_albedo[i];
-    }
-    return out;
-  }
+  std::unique_ptr<glm::vec3[]> recombined() const;
 
   // A single element w/ information on all the channels
+  class Slice;
   class Element {
   public:
     glm::vec3 m_albedo, m_direct, m_indirect, m_full;
 
-    Element &operator+=(const Element &e) {
-      m_albedo += e.m_albedo;
-      m_direct += e.m_direct;
-      m_indirect += e.m_indirect;
-      m_full += e.m_full;
-      return *this;
-    }
-    Element &operator/=(float f) {
-      m_albedo /= f;
-      m_direct /= f;
-      m_indirect /= f;
-      m_full /= f;
-      return *this;
-    }
+    Element& operator=(const Slice& sl);
+    Element &operator+=(const Element &e);
+    Element &operator/=(float f);
+    bool operator==(const Element &e) const;
+    bool operator!=(const Element& e) const;
+    // returns true if ANY elements are NaN
+    bool isnan() const;
 
-    static Element zero() {
-      return {glm::vec3(0.0), glm::vec3(0.0), glm::vec3(0.0), glm::vec3(0.0)};
-    }
+    static Element zero();
   };
 
   // A reference to a specific index in the buffers, over all channels.

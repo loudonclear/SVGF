@@ -13,6 +13,11 @@ public:
   void bind() const;
   static void unbind(); // Unbinds whatever current framebuffer is bound
   unsigned int id() const;
+  int width() const;
+  int height() const;
+
+  // Blits buffer to the default display buffer
+  void display(GLenum attachment = GL_COLOR_ATTACHMENT0);
 
 protected:
   int m_width, m_height;
