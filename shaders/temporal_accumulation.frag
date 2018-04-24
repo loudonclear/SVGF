@@ -21,7 +21,7 @@ void main(){
   float l = texture(col_history, uv).a;
   // if l == 0, set alpha to 1 and discard col_prev;
   float alpha_weight = max(float(l == 0), alpha);
-  alpha_weight = alpha;
+  alpha_weight = alpha; // ignore l for now, just test interpolation
   fragColorVariance = vec4(col * alpha_weight + (1-alpha_weight) * col_prev, l+1);
   fragColorVariance.r += 0.3;
 }
