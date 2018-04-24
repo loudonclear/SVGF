@@ -4,7 +4,7 @@
 
 using namespace CS123::GL;
 
-Texture2D::Texture2D(unsigned char *data, int width, int height,
+Texture2D::Texture2D(const GLvoid *data, int width, int height,
                      GLint internalFormat, GLenum format, GLenum type) {
   bind();
   glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, type,
@@ -12,10 +12,10 @@ Texture2D::Texture2D(unsigned char *data, int width, int height,
   unbind();
 }
 
-Texture2D Texture2D::RGBAFloatTex(unsigned char *data, int width, int height) {
+Texture2D Texture2D::RGBAFloatTex(const GLvoid *data, int width, int height) {
   return Texture2D(data, width, height, GL_RGBA16F, GL_RGBA, GL_FLOAT);
 }
-Texture2D Texture2D::UnsignedByteTex(unsigned char *data, int width,
+Texture2D Texture2D::UnsignedByteTex(const GLvoid *data, int width,
                                      int height) {
   return Texture2D(data, width, height, GL_R8, GL_RED, GL_UNSIGNED_BYTE);
 }

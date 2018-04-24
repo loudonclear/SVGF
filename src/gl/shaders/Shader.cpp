@@ -8,6 +8,7 @@
 
 #include "gl/GLDebug.h"
 #include "gl/textures/Texture2D.h"
+#include "gl/util/ResourceLoader.h"
 
 namespace CS123 { namespace GL {
 
@@ -67,6 +68,10 @@ Shader& Shader::operator=(Shader &&that) {
     that.m_programID = 0;
 
     return *this;
+}
+
+Shader Shader::from_files(const std::string& vert, const std::string& frag, const std::string& dir){
+      return {ResourceLoader::loadResourceFileToString(":/" + dir + "/" + vert), ResourceLoader::loadResourceFileToString(":/" + dir + "/" + frag)};
 }
 
 void Shader::bind() {

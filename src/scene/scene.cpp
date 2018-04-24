@@ -16,6 +16,8 @@
 #include "glm/gtx/transform.hpp"
 #include "glm/gtx/string_cast.hpp"
 
+#include <GL/glew.h>
+
 #include <QImage>
 
 #include <iostream>
@@ -30,22 +32,14 @@ using namespace CS123::GL;
 
 Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height), m_pipeline(false)
 {
-    m_testShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/test.vert"), ResourceLoader::loadResourceFileToString(":/shaders/test.frag"));
-    m_defaultShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/shader.vert"), ResourceLoader::loadResourceFileToString(":/shaders/shader.frag"));
-    m_gBufferShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.vert"), ResourceLoader::loadResourceFileToString(":/shaders/gbuffer.frag"));
-    m_temporalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/temporal.frag"));
-    m_waveletHorizontalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/hwavelet.frag"));
-    m_waveletVerticalShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/vwavelet.frag"));
-    m_waveletShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/wavelet.frag"));
-    m_initColorLumaShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/colorluma.frag"));
-    m_reconstructionShader = std::make_unique<Shader>(ResourceLoader::loadResourceFileToString(":/shaders/quad.vert"), ResourceLoader::loadResourceFileToString(":/shaders/reconstruction.frag"));
-
+    init_shaders();
     m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
     m_SVGFGBuffer_prev = std::make_shared<SVGFGBuffer>(width, height);
     m_colorVarianceBuffer1 = std::make_shared<ColorVarianceBuffer>(width, height);
     m_colorVarianceBuffer2 = std::make_shared<ColorVarianceBuffer>(width, height);
-    m_colorVarianceHistory = std::make_unique<ColorVarianceBuffer>(width, height);
+    m_directHistory = std::make_unique<ColorHistoryBuffer>(width, height);
+    m_indirectHistory = std::make_unique<ColorHistoryBuffer>(width, height);
 }
 
 
@@ -66,6 +60,28 @@ bool& Scene::pipeline() {
 
 const bool& Scene::pipeline() const {
     return m_pipeline;
+}
+
+void Scene::init_shaders() {
+  m_testShader =
+      std::make_unique<Shader>(Shader::from_files("test.vert", "test.frag"));
+  m_defaultShader = std::make_unique<Shader>(
+      Shader::from_files("shader.vert", "shader.frag"));
+  m_gBufferShader = std::make_unique<Shader>(
+      Shader::from_files("gbuffer.vert", "gbuffer.frag"));
+  m_temporalAccumulationShader = std::make_unique<Shader>(
+      Shader::from_files("quad.vert", "temporal_accumulation.frag"));
+  m_waveletHorizontalShader = std::make_unique<Shader>(
+      Shader::from_files("quad.vert", "hwavelet.frag"));
+  m_waveletVerticalShader = std::make_unique<Shader>(
+      Shader::from_files("quad.vert", "vwavelet.frag"));
+  m_waveletShader =
+      std::make_unique<Shader>(Shader::from_files("quad.vert", "wavelet.frag"));
+  m_initColorLumaShader = std::make_unique<Shader>(
+      Shader::from_files("quad.vert", "colorluma.frag"));
+  m_reconstructionShader = std::make_unique<Shader>(
+      Shader::from_files("quad.vert", "reconstruction.frag"));
+  m_updateHistoryShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "update_history.frag"));
 }
 
 std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
@@ -144,6 +160,7 @@ void renderQuad()
 
 
 void Scene::render() {
+    Buffer::unbind();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Pipeline:
@@ -179,7 +196,29 @@ void Scene::render() {
         // TODO: Temporal accumulation shader
         // INPUT: color, motion vectors, normals, depth, mesh/mat ids, color history, moments history, prev normals, prev depth, prev mesh/mat ids
         // OUTPUT: integrated color, integrated moments
+        float integration_alpha = 0.2;
+        ColorVarianceBuffer direct_accumulated(width, height);
+        ColorVarianceBuffer indirect_accumulated(width, height);
+        accumulate(*m_directHistory, cb.getDirectTexture(), direct_accumulated, integration_alpha);
+        accumulate(*m_indirectHistory, cb.getIndirectTexture(), indirect_accumulated, integration_alpha);
 
+        /* Test of accumulation -- write direct texture into history buffer  */
+        m_directHistory->bind();
+        m_updateHistoryShader->bind();
+        // ideally new_col would be filtered input
+         m_updateHistoryShader->setTexture("new_col", direct_accumulated.color_variance_texture());
+        //m_updateHistoryShader->setTexture("new_col", cb.getDirectTexture());
+        // Texture contains the original "history length" data
+        m_updateHistoryShader->setTexture("col_history", direct_accumulated.color_variance_texture());
+        renderQuad();
+        m_directHistory->unbind();
+
+        // Code to display a given buffer. This could be whack, although it was working at other times
+        Buffer::unbind();
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, m_directHistory->id());
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBlitFramebuffer(0, 0, width, height, 0, 0, width, height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        Buffer::unbind();
 
         // TODO: Variance estimation
         // INPUT: integrated moments
@@ -190,18 +229,11 @@ void Scene::render() {
         // INPUT: integrated color, variance, luminance
         // OUTPUT: 1st level filtered color, 5th level filtered color
 
-        ResultBuffer direct(width, height);
-        ResultBuffer indirect(width, height);
-
-        float integration_alpha = 0.2;
-        // ResultBuffer direct_accumulated, indirect_accumulated;
-
-        bool separate = false;
-        // waveletPassAllChannels();
-        waveletPass(direct, cb.getDirectTexture(), 5, separate);
-        waveletPass(indirect, cb.getIndirectTexture(), 5, separate);
-
-
+        // bool separate = true;
+        // ResultBuffer direct(width, height);
+        // ResultBuffer indirect(width, height);
+        // waveletPass(direct, direct_accumulated.color_variance_texture(), *m_directHistory, 5, separate);
+        // waveletPass(indirect, indirect_accumulated.color_variance_texture(), *m_indirectHistory, 5, separate);
 
         // TODO: Update color and moments history
         // INPUT: 1st level filtered color, integrated moments
@@ -211,8 +243,7 @@ void Scene::render() {
         // TODO: Reconstruction
         // INPUT: direct/indirect lighting, 5th level filtered color
         // OUTPUT: combined light and primary albedo
-
-        this->recombineColor(cb, direct, indirect);
+        // this->recombineColor(cb, direct, indirect);
 
         // TODO: Post-processing (tone mapping, temporal antialiasing)
         // INPUT: combined light and primary albedo
@@ -247,16 +278,26 @@ void Scene::render() {
 
 }
 
-void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, bool separate) {
+void Scene::accumulate(ColorHistoryBuffer &history,
+                       const Texture2D &new_color_tex,
+                       ColorVarianceBuffer &accumulator, float alpha) {
+  accumulator.bind();
+  m_temporalAccumulationShader->bind();
+  m_temporalAccumulationShader->setUniform("alpha", alpha);
+  m_temporalAccumulationShader->setTexture("col_history",
+                                           history.color_history());
+  m_temporalAccumulationShader->setTexture("moments", history.moments());
+  m_temporalAccumulationShader->setTexture("current_color", new_color_tex);
+  renderQuad();
+  m_temporalAccumulationShader->unbind();
+  accumulator.unbind();
+}
+
+void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistoryBuffer& history, int iterations, bool separate) {
     // Initial color and luma
     m_colorVarianceBuffer1->bind();
     m_initColorLumaShader->bind();
-
-    GLint cLoc = glGetUniformLocation(m_initColorLumaShader->getID(), "color");
-    glUniform1i(cLoc, 0);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, texture);
-
+    m_initColorLumaShader->setTexture("color", texture);
     renderQuad();
     m_initColorLumaShader->unbind();
     m_colorVarianceBuffer1->unbind();
@@ -292,7 +333,16 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
         renderQuad();
     }
 
+    // TODO XXX non-separated filter uses colorvariancebufer2 instead of 1
     // TODO: Store 1st level filtered color
+    history.bind();
+    m_updateHistoryShader->bind();
+    m_updateHistoryShader->setTexture("new_col", m_colorVarianceBuffer1->color_variance_texture());
+    // Texture contains the original "history length" data
+    m_updateHistoryShader->setTexture("col_history", texture);
+    renderQuad();
+    history.unbind();
+
     if (separate) {
       for (int i = 1; i < iterations; i++) {
         m_colorVarianceBuffer2->bind();
@@ -326,8 +376,6 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
         renderQuad();
       }
     }
-    Buffer::unbind();
-
     rb.bind();
     m_testShader->bind();
     m_testShader->setTexture("color", m_colorVarianceBuffer2->color_variance_texture());
@@ -339,21 +387,17 @@ void Scene::waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, 
 void Scene::recombineColor(const ColorBuffer &cb, const ResultBuffer &direct,
                            const ResultBuffer &indirect) {
      m_reconstructionShader->bind();
+     m_reconstructionShader->setTexture("albedo", cb.getAlbedoTexture());
      GLint dLoc = glGetUniformLocation(m_reconstructionShader->getID(), "direct");
      glUniform1i(dLoc, 0);
      GLint idLoc =
          glGetUniformLocation(m_reconstructionShader->getID(), "indirect");
      glUniform1i(idLoc, 1);
-     GLint aLoc =
-         glGetUniformLocation(m_reconstructionShader->getID(), "albedo");
-     glUniform1i(aLoc, 2);
 
      glActiveTexture(GL_TEXTURE0);
      glBindTexture(GL_TEXTURE_2D, direct.getColorTexture());
      glActiveTexture(GL_TEXTURE1);
      glBindTexture(GL_TEXTURE_2D, indirect.getColorTexture());
-     glActiveTexture(GL_TEXTURE2);
-     glBindTexture(GL_TEXTURE_2D, cb.getAlbedoTexture());
 
      renderQuad();
      m_reconstructionShader->unbind();

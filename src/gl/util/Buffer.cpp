@@ -11,6 +11,10 @@ Buffer::Buffer(int width, int height) : m_width(width), m_height(height) {
   glGenFramebuffers(1, &m_id);
 }
 
+Buffer::~Buffer(){
+  glDeleteFramebuffers(1, &m_id);
+}
+
 void Buffer::bind() const {
   glBindFramebuffer(GL_FRAMEBUFFER, m_id);
   glViewport(0, 0, m_width, m_height);
@@ -35,12 +39,13 @@ void determineFormat(GLint &internalFormat, GLenum &format, GLenum &type) {
   }
 }
 
+
 Texture2D Buffer::makeTexture(GLint internalFormat, GLenum format,
-                              GLenum type) {
+                              GLenum type, void *data) {
   TextureParameters tex_params{TextureParameters::FILTER_METHOD::NEAREST,
                                TextureParameters::WRAP_METHOD::CLAMP_TO_EDGE};
   Texture2D tex =
-      Texture2D(nullptr, m_width, m_height, internalFormat, format, type);
+      Texture2D(data, m_width, m_height, internalFormat, format, type);
   tex_params.applyTo(tex);
   return tex;
 }
@@ -52,17 +57,21 @@ Texture2D Buffer::makeTexture(GLenum type) {
   return makeTexture(internalFormat, format, type);
 }
 
-Texture2D Buffer::makeTextureAndAttach(GLint internalFormat, GLenum format,
-                                       GLenum type, unsigned int attach_id,
-                                       bool do_unbind) {
-  Texture2D tex = makeTexture(internalFormat, format, type);
+void Buffer::attachTexture(Texture2D& tex, unsigned int attach_id, bool do_unbind) {
   // attach to FBO
   bind();
   glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + attach_id,
                          GL_TEXTURE_2D, tex.id(), 0);
   if (do_unbind) {
-    unbind();
+    Buffer::unbind();
   }
+}
+
+Texture2D Buffer::makeTextureAndAttach(GLint internalFormat, GLenum format,
+                                       GLenum type, unsigned int attach_id,
+                                       void *data, bool do_unbind) {
+  Texture2D tex = makeTexture(internalFormat, format, type, data);
+  attachTexture(tex, attach_id, do_unbind);
   return tex;
 }
 
@@ -73,5 +82,5 @@ Texture2D Buffer::makeTextureAndAttach(GLenum type, unsigned int attach_id,
   GLenum format;
   determineFormat(internalFormat, format, type);
   return makeTextureAndAttach(internalFormat, format, type, attach_id,
-                              do_unbind);
+                              nullptr, do_unbind);
 }

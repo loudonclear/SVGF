@@ -5,21 +5,18 @@
 
 #include "gl/textures/Texture2D.h"
 
-// Reprents a GL FBO for storing color and variance history. Data is
-// stored in RGBA format, where RGB represents color and A channel is
-// used for variance. Separate textures are used for direct & indirect
-// lighting.  An addition texture is used to represent the number of
-// frames each pixel of history has been consistent and valid.
-class ColorHistoryBuffer : Buffer {
+// Reprents a GL FBO for storing color and variance history.
+class ColorHistoryBuffer : public Buffer {
 public:
   ColorHistoryBuffer(int width, int height);
 
-  const CS123::GL::Texture2D &direct_texture() const;
-  const CS123::GL::Texture2D &indirect_texture() const;
-  const CS123::GL::Texture2D &history_length_texture() const;
+  const CS123::GL::Texture2D &color_history() const;
+  const CS123::GL::Texture2D &moments() const;
 
 private:
-  CS123::GL::Texture2D m_direct, m_indirect, m_history_length;
+  // Color History is stored as float RGBA where A is history length.
+  // Moments are stored as pairs of floats
+  CS123::GL::Texture2D m_color_history, m_moments;
 };
 
 #endif // COLORHISTORYBUFFER_H

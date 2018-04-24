@@ -3,40 +3,15 @@
 #include <iostream>
 #include <GL/glew.h>
 
-ColorBuffer::ColorBuffer(int width, int height, RenderBuffers &buffers) : m_width(width), m_height(height)
+using namespace CS123::GL;
+
+ColorBuffer::ColorBuffer(int width, int height, RenderBuffers &buffers) :
+  Buffer(width, height),
+  m_direct(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 0, buffers.m_direct.get())),
+  m_indirect(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 1, buffers.m_indirect.get())),
+  m_albedo(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 2, buffers.m_albedo.get()))
 {
-    glGenFramebuffers(1, &cBuffer);
     bind();
-
-    // Direct Color
-    glGenTextures(1, &direct);
-    glBindTexture(GL_TEXTURE_2D, direct);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, static_cast<const void *>(buffers.m_direct.get()));
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, direct, 0);
-
-    // Indirect Color
-    glGenTextures(1, &indirect);
-    glBindTexture(GL_TEXTURE_2D, indirect);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, static_cast<const void *>(buffers.m_indirect.get()));
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, indirect, 0);
-
-    // Albedo
-    glGenTextures(1, &albedo);
-    glBindTexture(GL_TEXTURE_2D, albedo);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, width, height, 0, GL_RGB, GL_FLOAT, static_cast<const void *>(buffers.m_albedo.get()));
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, albedo, 0);
 
     unsigned int attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
     glDrawBuffers(3, attachments);
@@ -45,26 +20,17 @@ ColorBuffer::ColorBuffer(int width, int height, RenderBuffers &buffers) : m_widt
     if (status != GL_FRAMEBUFFER_COMPLETE)
         std::cout << "Framebuffer not complete: " << status << std::endl;
 
-    unbind();
+    Buffer::unbind();
 }
 
-void ColorBuffer::bind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, cBuffer);
-    glViewport(0, 0, m_width, m_height);
+const Texture2D& ColorBuffer::getDirectTexture() const {
+    return m_direct;
 }
 
-void ColorBuffer::unbind() const {
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+const Texture2D&  ColorBuffer::getIndirectTexture() const {
+    return m_indirect;
 }
 
-unsigned int ColorBuffer::getDirectTexture() const {
-    return direct;
-}
-
-unsigned int ColorBuffer::getIndirectTexture() const {
-    return indirect;
-}
-
-unsigned int ColorBuffer::getAlbedoTexture() const {
-    return albedo;
+const Texture2D&  ColorBuffer::getAlbedoTexture() const {
+    return m_albedo;
 }

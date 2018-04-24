@@ -7,8 +7,8 @@ using namespace CS123::GL;
 
 SVGFGBuffer::SVGFGBuffer(int width, int height)
     : Buffer(width, height),
-      gDepthIDs(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 0)),
-      gNormal(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 1))
+      gDepthIDs(Buffer::makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 0)),
+      gNormal(Buffer::makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 1))
 
 {
   bind();

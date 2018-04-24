@@ -9,21 +9,20 @@ using namespace CS123::GL;
 
 ColorHistoryBuffer::ColorHistoryBuffer(int width, int height)
   : Buffer(width, height),
-    m_direct(this->makeTextureAndAttach(GL_FLOAT, 0)),
-    m_indirect(this->makeTextureAndAttach(GL_FLOAT, 1)),
-    m_history_length(this->makeTextureAndAttach(GL_UNSIGNED_BYTE, 2)) {
+    m_color_history(this->makeTextureAndAttach(GL_RGBA16F, GL_RGBA, GL_FLOAT, 0)),
+    m_moments(this->makeTextureAndAttach(GL_RG16F, GL_RG, GL_FLOAT, 1))
+{
   bind();
 
   // attach textures to frame buffer
-  unsigned int attachments[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
-                                 GL_COLOR_ATTACHMENT2};
-  glDrawBuffers(3, attachments);
+  unsigned int attachments[2] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1};
+  glDrawBuffers(2, attachments);
 
   // set history length texture to 0
-  m_history_length.bind();
-  GLuint zero = 0;
-  glClearBufferuiv(GL_COLOR, GL_COLOR_ATTACHMENT2, &zero);
-  m_history_length.unbind();
+  m_color_history.bind();
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT);
+  m_color_history.unbind();
 
   auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
   if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -33,12 +32,5 @@ ColorHistoryBuffer::ColorHistoryBuffer(int width, int height)
   Buffer::unbind();
 }
 
-const Texture2D &ColorHistoryBuffer::direct_texture() const { return m_direct; }
-
-const Texture2D &ColorHistoryBuffer::indirect_texture() const {
-  return m_indirect;
-}
-
-const Texture2D &ColorHistoryBuffer::history_length_texture() const {
-  return m_history_length;
-}
+const Texture2D &ColorHistoryBuffer::color_history() const { return m_color_history; }
+const Texture2D &ColorHistoryBuffer::moments() const { return m_moments; }

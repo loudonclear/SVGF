@@ -3,3 +3,5 @@
 ## TODO
 
 - **Factoring out the albedo**: Fix albedo for Cook-Torrance to not make it view dependent.
+
+- ** MOve the temporary buffers created each frame into member variables **

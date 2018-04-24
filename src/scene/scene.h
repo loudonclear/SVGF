@@ -5,6 +5,10 @@
 
 #include "BVH/BVH.h"
 #include "gl/util/ColorBuffer.h"
+#include "gl/util/ColorHistoryBuffer.h"
+#include "gl/util/ColorVarianceBuffer.h"
+#include "gl/util/ResultBuffer.h"
+#include "gl/util/SVGFGBuffer.h"
 #include "shape/mesh.h"
 #include "util/CS123SceneData.h"
 #include "util/util.h"
@@ -14,9 +18,6 @@
 #include <memory>
 
 class PathTracer;
-class SVGFGBuffer;
-class ColorVarianceBuffer;
-class ResultBuffer;
 
 namespace CS123 { namespace GL {
 
@@ -62,21 +63,29 @@ private:
 
     std::shared_ptr<SVGFGBuffer> m_SVGFGBuffer, m_SVGFGBuffer_prev;
     std::shared_ptr<ColorVarianceBuffer> m_colorVarianceBuffer1, m_colorVarianceBuffer2;
-    std::unique_ptr<ColorVarianceBuffer> m_colorVarianceHistory;
+    std::unique_ptr<ColorHistoryBuffer> m_directHistory, m_indirectHistory;
 
     std::shared_ptr<CS123::GL::Shader> m_testShader;
-    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader, m_temporalShader, m_waveletHorizontalShader, m_waveletVerticalShader, m_waveletShader, m_initColorLumaShader, m_reconstructionShader;
+    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader,
+        m_temporalAccumulationShader, m_waveletHorizontalShader,
+        m_waveletVerticalShader, m_waveletShader, m_initColorLumaShader,
+      m_reconstructionShader, m_updateHistoryShader;
     bool m_pipeline;
 
     CS123SceneGlobalData m_globalData;
     std::vector<CS123SceneLightData> m_lights;
+
+    // convenience function for loading all the shaders.
+    void init_shaders();
+
+  void accumulate(ColorHistoryBuffer& history, const CS123::GL::Texture2D& new_color_tex, ColorVarianceBuffer& accumulator, float alpha);
 
     // Does spatial wavelet filtering using several iterations with increasing footprint.
     // rb - the buffer in which to store the result
     // texture - the texture to filter
     // iterations - how many iterations of filters to apply
     // separate - whether to use one horizontal and one vertical filter, or to use one huge 2d filter.
-    void waveletPass(ResultBuffer& rb, unsigned int texture, int iterations, bool separate=true);
+    void waveletPass(ResultBuffer& rb, const CS123::GL::Texture2D& texture, ColorHistoryBuffer& history, int iterations, bool separate=true);
     void recombineColor(const ColorBuffer& cb, const ResultBuffer& direct, const ResultBuffer& indirect);
 
     static bool parseTree(CS123SceneNode *root, Scene& scene, const std::string& baseDir);

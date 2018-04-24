@@ -55,12 +55,12 @@ RenderBuffers PathTracer::traceScene(const Scene& scene) {
     for (int block = 0; block < threads - 1; block++) {
         int newYOffset = yOffset + yBlockSize;
         RenderTask *rt = new RenderTask(this, scene, &output_buffs, invViewMat, 0, yOffset, m_width, newYOffset);
-        rt->setAutoDelete(false);
+        rt->setAutoDelete(true);
         pool.start(rt);
         yOffset = newYOffset;
     }
     RenderTask *rt = new RenderTask(this, scene, &output_buffs, invViewMat, 0, yOffset, m_width, m_height);
-    rt->setAutoDelete(false);
+    rt->setAutoDelete(true);
     pool.start(rt);
 
     pool.waitForDone();
