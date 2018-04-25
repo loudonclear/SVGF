@@ -21,7 +21,6 @@ const float gaussKernel[9] = float[9](1.0/16.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/
 
 
 void main() {
-
     float pDepth = texture(gDepthIDs, uv).r;
     float pMeshID = texture(gDepthIDs, uv).g;
     float pMatID = texture(gDepthIDs, uv).b;
@@ -70,7 +69,8 @@ void main() {
             }
             float wl = min(1.0, exp(-abs(pLuminance - qLuminance) / (sigmaL * sqrt(gvl) + epsilon)));
             wl = 1.0;
-            float w = wz * wn * wl;
+            float w_nan = 1 - int(any(isnan(qColor)));
+            float w = wz * wn * wl * w_nan;
             float weight = h[offset + support] * w;
 
             c += weight * qColor;
@@ -85,7 +85,4 @@ void main() {
     } else {
         cvnext = texture(colorVariance, uv).rgba;
     }
-    // if(any(isnan(cvnext))){
-    //   cvnext.r = 1.0;
-    // }
 }

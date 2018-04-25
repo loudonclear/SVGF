@@ -63,6 +63,7 @@ Shader::Shader(Shader &&that) :
 
 Shader& Shader::operator=(Shader &&that) {
     this->clear();
+    that.m_programID = 0;
 
     m_programID = that.m_programID;
     m_attributes = std::move(that.m_attributes);
@@ -70,9 +71,6 @@ Shader& Shader::operator=(Shader &&that) {
     m_uniformArrays = std::move(that.m_uniformArrays);
     m_textureLocations = std::move(that.m_textureLocations);
     m_textureSlots = std::move(that.m_textureSlots);
-
-    that.m_programID = 0;
-
     return *this;
 }
 

@@ -38,6 +38,7 @@ public:
     Element& operator=(const Slice& sl);
     Element &operator+=(const Element &e);
     Element &operator/=(float f);
+    Element &operator*=(float f);
     bool operator==(const Element &e) const;
     bool operator!=(const Element& e) const;
     // returns true if ANY elements are NaN

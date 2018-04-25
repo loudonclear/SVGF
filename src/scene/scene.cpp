@@ -232,9 +232,6 @@ void Scene::render() {
         // INPUT: combined light and primary albedo
         // OUTPUT: rendered image
 
-        // cb.display();
-
-
         std::cout << "End frame" << std::endl;
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         float duration = duration_cast<milliseconds>( t2 - t1 ).count() / 1000.0;

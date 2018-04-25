@@ -70,6 +70,7 @@ void main() {
             }
             float wl = min(1.0, exp(-abs(pLuminance - qLuminance) / (sigmaL * sqrt(gvl) + epsilon)));
             wl = 1.0;
+            float w_nan = 1 - int(any(isnan(qColor)));
             float w = wz * wn * wl;
             float weight = h[offset + support] * w;
 

@@ -32,11 +32,20 @@ RenderBuffers::Element &RenderBuffers::Element::operator+=(const RenderBuffers::
   m_full += e.m_full;
   return *this;
 }
+
 RenderBuffers::Element &RenderBuffers::Element::operator/=(float f) {
   m_albedo /= f;
   m_direct /= f;
   m_indirect /= f;
   m_full /= f;
+  return *this;
+}
+
+RenderBuffers::Element &RenderBuffers::Element::operator*=(float f) {
+  m_albedo *= f;
+  m_direct *= f;
+  m_indirect *= f;
+  m_full *= f;
   return *this;
 }
 
