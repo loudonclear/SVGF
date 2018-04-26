@@ -93,7 +93,7 @@ RenderBuffers::Element PathTracer::tracePixel(int x, int y, const Scene& scene, 
     glm::vec3 p(0, 0, 0);
     auto res = RenderBuffers::Element::zero();
     for (unsigned int s = 0; s < m_numSamples; s++) {
-        glm::vec3 d((2.f * (x + random()) / m_width) - 1, 1 - (2.f * (y + random()) / m_height), -1);
+        glm::vec3 d((2.f * (x) / m_width) - 1, 1 - (2.f * (y) / m_height), -1);
         d = glm::normalize(d);
 
         res += traceRay(Ray(Ray(p, d).transform(invViewMatrix)), scene, 0);
@@ -165,6 +165,7 @@ glm::vec3 directLighting(const glm::vec3& hit, const glm::vec3& normal, const Sc
             const Triangle *t = static_cast<const Triangle *>(i.data);
             const tinyobj::material_t& mat = m->getMaterial(t->getIndex());
 
+            if (glm::dot(toLight, t->getNormal(i)) > 0.f) continue;
             float ndotl = glm::dot(toLight, normal);
             if (ndotl <= 0.f) continue;
 
@@ -176,10 +177,9 @@ glm::vec3 directLighting(const glm::vec3& hit, const glm::vec3& normal, const Sc
 }
 
 RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, int depth, bool show_lights) {
-  if(depth > 100){
+  if(depth > 10){
     return RenderBuffers::Element::zero();
   }
-  glm::vec3 l(0, 0, 0);
 
     IntersectionInfo i;
     if(scene.getBVH().getIntersection(r, &i, false)) {
@@ -194,10 +194,12 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
             elem.m_full = elem.m_albedo;
             return elem;
         }
-        const glm::vec3 hit = i.hit;
-        const glm::vec3 normal = glm::normalize((m->inverseNormalTransform * glm::vec4(t->getNormal(i), 0)).xyz());
-        const bool inward = glm::dot(normal, r.d) < 0;
-        const glm::vec3 sn = inward ? normal : -normal;
+
+        glm::vec3 hit = i.hit;
+        glm::vec3 normal = glm::normalize((m->inverseNormalTransform * glm::vec4(t->getNormal(i), 0)).xyz());
+        bool inward = glm::dot(normal, r.d) < 0;
+        glm::vec3 sn = inward ? normal : -normal;
+
 
         if (mat.illum == 2) { // Diffuse
             const float pdf_rr = std::min(std::max(mat.diffuse[0], std::max(mat.diffuse[1], mat.diffuse[2])), 0.99f);
@@ -305,7 +307,7 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                 const float radicand = 1.f - ratio * ratio * (1.f - costheta*costheta);
 
                 // TODO m_full
-                if (radicand < 0) {
+                if (radicand < FLOAT_EPSILON) {
                   elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true).m_full / pdf_rr;
                 } else {
                     glm::vec3 refr;

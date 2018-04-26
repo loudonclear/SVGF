@@ -12,7 +12,7 @@ uniform float alpha;
 
 uniform sampler2D col_history;
 uniform sampler2D current_color;
-uniform sampler2D moments;
+//uniform sampler2D moments;
 
 float luma(vec3 c){
   return dot(c, vec3(0.2126, 0.7152, 0.0722));
@@ -27,6 +27,7 @@ void main() {
   vec3 col_prev = texture(col_history, uv).rgb;
   vec2 moments_prev = texture(moments, uv).rg;
   float l = texture(col_history, uv).a;
+
   // if l == 0, set alpha to 1 and discard col_prev;
   float alpha_weight = max(float(l == 0), alpha);
   // alpha_weight = alpha; // ignore l for now, just test interpolation

@@ -214,12 +214,17 @@ void Shader::setUniformArrayByIndex(const std::string &name, const glm::mat4 &ma
 void Shader::setTexture(const std::string &name, const Texture1D &t) {}
 
 void Shader::setTexture(const std::string &name, const Texture2D &t) {
-  GLint location = m_textureLocations.at(name);
-  GLint slot = m_textureSlots.at(location);
-  // fprintf(stderr, "Location %d, slot %d\n", location, slot);
-  glActiveTexture(GL_TEXTURE0 + slot);
-  glUniform1i(location, slot);
-  t.bind();
+
+  if (m_textureLocations.find(name) != m_textureLocations.end()) {
+      GLint location = m_textureLocations.at(name);
+      GLint slot = m_textureSlots.at(location);
+      // fprintf(stderr, "Location %d, slot %d\n", location, slot);
+      glActiveTexture(GL_TEXTURE0 + slot);
+      glUniform1i(location, slot);
+      t.bind();
+  } else {
+    std::cout << "Inactive texture bind: " << name << std::endl;
+  }
 }
 
 void Shader::setTexture(const std::string &name, const Texture3D &t) {}

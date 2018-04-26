@@ -65,6 +65,8 @@ void View::initializeGL() {
      m_time.start();
      m_timer.start(1000 / 60);
 
+     std::cout << height() << std::endl;
+
     /* Load initial scene  */
     const QStringList cli_args = m_cli_parser.positionalArguments();
     if (cli_args.size() > 0) {
@@ -81,6 +83,7 @@ void View::initializeGL() {
 
 void View::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
+    m_scene->resize(w, h);
 }
 
 void View::paintGL() {
