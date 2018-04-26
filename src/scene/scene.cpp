@@ -376,15 +376,11 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
         this->flip_rgba_texture(m_colorVarianceBuffer2->color_variance_texture(), history);
     }
 
-<<<<<<< HEAD
     // TODO XXX non-separated filter uses colorvariancebufer2 instead of 1
     // update color history
     glColorMaski(history.id(), true, true, true, false);
     this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), history);
     glColorMaski(history.id(), true, true, true, true);
-=======
-
->>>>>>> 1335a7fe53c0e8ff97fd2690d6ab8e3db58bec83
 
     if (separate) {
       for (int i = 1; i < iterations; i++) {

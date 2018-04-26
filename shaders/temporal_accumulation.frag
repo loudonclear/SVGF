@@ -12,7 +12,7 @@ uniform float alpha;
 
 uniform sampler2D col_history;
 uniform sampler2D current_color;
-//uniform sampler2D moments;
+uniform sampler2D moments;
 
 float luma(vec3 c){
   return dot(c, vec3(0.2126, 0.7152, 0.0722));
