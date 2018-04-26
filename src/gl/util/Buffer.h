@@ -7,8 +7,10 @@
 
 class Buffer {
 public:
+  Buffer();
   Buffer(int width, int height);
   ~Buffer();
+  static Buffer default_buff(int width, int height);
 
   void bind() const;
   static void unbind(); // Unbinds whatever current framebuffer is bound
@@ -16,6 +18,7 @@ public:
   int width() const;
   int height() const;
 
+  void blit_to(GLenum in_attachment, Buffer& out_buff, GLenum out_attachment) const;
   // Blits buffer to the default display buffer
   void display(GLenum attachment = GL_COLOR_ATTACHMENT0);
 
@@ -37,6 +40,9 @@ protected:
                                             void *data = nullptr, bool do_unbind = false);
   CS123::GL::Texture2D makeTextureAndAttach(GLenum type, unsigned int attach_id,
                                             bool do_unbind = false);
+
+private:
+  Buffer(int width, int height, int m_id);
 };
 
 #endif // BUFFER_H

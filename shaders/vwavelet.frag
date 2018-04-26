@@ -82,8 +82,7 @@ void main() {
 
     if (weights > 0.0) {
         cvnext.rgb = c / weights;
-        cvnext.a = v / (weights * weights);
     } else {
-        cvnext = texture(colorVariance, uv).rgba;
+        cvnext.rgb = texture(colorVariance, uv).rgb;
     }
 }

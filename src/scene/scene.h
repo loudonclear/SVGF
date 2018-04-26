@@ -66,27 +66,38 @@ private:
     std::unique_ptr<ColorHistoryBuffer> m_directHistory, m_indirectHistory;
 
     std::shared_ptr<CS123::GL::Shader> m_testShader;
-    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_gBufferShader,
-        m_temporalAccumulationShader, m_waveletHorizontalShader,
-        m_waveletVerticalShader, m_waveletShader, m_initColorLumaShader,
-      m_reconstructionShader, m_updateHistoryShader;
+    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_drawAlphaShader,
+        m_gBufferShader, m_temporalAccumulationShader, m_calcVarianceShader,
+        m_copyMomentsShader, m_initColorLumaShader, m_waveletHorizontalShader,
+        m_waveletVerticalShader, m_waveletShader, m_updateHistoryShader,
+        m_reconstructionShader;
     bool m_pipeline;
+
+    // for debug
+    std::vector<std::unique_ptr<glm::vec3[]>> luma_history;
 
     CS123SceneGlobalData m_globalData;
     std::vector<CS123SceneLightData> m_lights;
 
     // convenience function for loading all the shaders.
     void init_shaders();
+
+    /* Code for Running Shaders  */
+    void draw_alpha(const CS123::GL::Texture2D& tex, Buffer& output_buff);
     void flip_rgba_texture(const CS123::GL::Texture2D& tex, Buffer& output_buff);
-    void accumulate(ColorHistoryBuffer& history, const CS123::GL::Texture2D& new_color_tex, ColorVarianceBuffer& accumulator, float alpha);
+    // Combine history and new frame to create integrated color & moments
+    void accumulate(ColorHistoryBuffer& history, const CS123::GL::Texture2D& new_color_tex, ColorHistoryBuffer& accumulator, float alpha);
+    void calc_variance(const ColorHistoryBuffer& accumulated, ColorVarianceBuffer& out);
 
     // Does spatial wavelet filtering using several iterations with increasing footprint.
     // rb - the buffer in which to store the result
-    // texture - the texture to filter
+    // texture - the color variance texture (R,G,B,Variance) to filter
     // iterations - how many iterations of filters to apply
     // separate - whether to use one horizontal and one vertical filter, or to use one huge 2d filter.
     void waveletPass(ResultBuffer& rb, const CS123::GL::Texture2D& texture, ColorHistoryBuffer& history, int iterations, bool separate=true);
     void recombineColor(const ColorBuffer& cb, const ResultBuffer& direct, const ResultBuffer& indirect);
+
+  /* Scene BVH code  */
 
     static bool parseTree(CS123SceneNode *root, Scene& scene, const std::string& baseDir);
     static void parseNode(CS123SceneNode *node, const glm::mat4x4 &parentTransform, std::vector<Object *> *objects, const std::string& baseDir, int &id);

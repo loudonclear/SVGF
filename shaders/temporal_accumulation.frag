@@ -6,12 +6,17 @@
 in vec2 uv;
 
 layout(location = 0) out vec4 fragColorVariance;
+layout(location = 1) out vec2 out_moments;
 
 uniform float alpha;
 
 uniform sampler2D col_history;
 uniform sampler2D current_color;
 uniform sampler2D moments;
+
+float luma(vec3 c){
+  return dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
 
 void main() {
   // TODO right now we're not taking into account motion. Just accumulate color
@@ -20,7 +25,7 @@ void main() {
   // TODO filtered color input based on GBuffer
   vec3 col = texture(current_color, uv).rgb;
   vec3 col_prev = texture(col_history, uv).rgb;
-  vec2 moments = texture(moments, uv).rg;
+  vec2 moments_prev = texture(moments, uv).rg;
   float l = texture(col_history, uv).a;
   // if l == 0, set alpha to 1 and discard col_prev;
   float alpha_weight = max(float(l == 0), alpha);
@@ -31,8 +36,13 @@ void main() {
     alpha_weight = 1.0;
   }
 
+  // update data;
+  // alpha_weight = alpha;
   fragColorVariance =
       vec4(col * alpha_weight + (1 - alpha_weight) * col_prev, l + 1);
+  float new_luma = luma(col);
+  vec2 new_moments = vec2(new_luma, new_luma * new_luma);
+  out_moments = new_moments * alpha_weight + (1-alpha_weight) * moments_prev;
 
   if (any(isnan(fragColorVariance))) {
     fragColorVariance = vec4(0,0,0,0);

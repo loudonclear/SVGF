@@ -24,6 +24,11 @@ ColorHistoryBuffer::ColorHistoryBuffer(int width, int height)
   glClear(GL_COLOR_BUFFER_BIT);
   m_color_history.unbind();
 
+  m_moments.bind();
+  glClearColor(0.0, 0.0, 0.0, 0.0);
+  glClear(GL_COLOR_BUFFER_BIT);
+  m_moments.unbind();
+
   auto status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
   if (status != GL_FRAMEBUFFER_COMPLETE) {
     std::cout << "Framebuffer not complete: " << status << std::endl;

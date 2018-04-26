@@ -67,21 +67,25 @@ void Scene::init_shaders() {
       std::make_unique<Shader>(Shader::from_files("test.vert", "test.frag"));
   m_defaultShader = std::make_unique<Shader>(
       Shader::from_files("shader.vert", "shader.frag"));
+  m_drawAlphaShader = std::make_unique<Shader>(
+      Shader::from_files("quad.vert", "draw_alpha.frag"));
   m_gBufferShader = std::make_unique<Shader>(
       Shader::from_files("gbuffer.vert", "gbuffer.frag"));
   m_temporalAccumulationShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "temporal_accumulation.frag"));
+  m_calcVarianceShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "calc_variance.frag"));
+  m_copyMomentsShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "copy_moments.frag"));
   m_waveletHorizontalShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "hwavelet.frag"));
   m_waveletVerticalShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "vwavelet.frag"));
   m_waveletShader =
       std::make_unique<Shader>(Shader::from_files("quad.vert", "wavelet.frag"));
+  m_updateHistoryShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "update_history.frag"));
   m_initColorLumaShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "colorluma.frag"));
   m_reconstructionShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "reconstruction.frag"));
-  m_updateHistoryShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "update_history.frag"));
 }
 
 std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
@@ -165,7 +169,6 @@ void Scene::render() {
 
     // Pipeline:
     if (m_pipeline) {
-      high_resolution_clock::time_point t1 = high_resolution_clock::now();
         // G-buffer
         // INPUT: scene
         // OUTPUT: depth, normals, mesh/mat ids, motion vectors
@@ -191,17 +194,18 @@ void Scene::render() {
         // OUTPUT: direct/indirect lighting color
 
         auto buffers = this->trace();
+        high_resolution_clock::time_point t1 = high_resolution_clock::now();
         ColorBuffer cb = ColorBuffer(width, height, buffers);
 
         // TODO: Temporal accumulation shader
         // INPUT: color, motion vectors, normals, depth, mesh/mat ids, color history, moments history, prev normals, prev depth, prev mesh/mat ids
         // OUTPUT: integrated color, integrated moments
         float integration_alpha = 0.2;
-        ColorVarianceBuffer direct_accumulated(width, height);
-        ColorVarianceBuffer indirect_accumulated(width, height);
+        ColorHistoryBuffer direct_accumulated(width, height);
+        ColorHistoryBuffer indirect_accumulated(width, height);
+
         accumulate(*m_directHistory, cb.getDirectTexture(), direct_accumulated, integration_alpha);
         accumulate(*m_indirectHistory, cb.getIndirectTexture(), indirect_accumulated, integration_alpha);
-
 
         // TODO: Variance estimation
         // INPUT: integrated moments
@@ -211,11 +215,17 @@ void Scene::render() {
         // TODO: Wavelet filter
         // INPUT: integrated color, variance, luminance
         // OUTPUT: 1st level filtered color, 5th level filtered color
-        bool separate = true;
+        ColorVarianceBuffer cv_temp(width, height);
+
         ResultBuffer direct(width, height);
         ResultBuffer indirect(width, height);
-        waveletPass(direct, direct_accumulated.color_variance_texture(), *m_directHistory, 5, separate);
-        waveletPass(indirect, indirect_accumulated.color_variance_texture(), *m_indirectHistory, 5, separate);
+        bool separate = true;
+        calc_variance(direct_accumulated, cv_temp);
+        waveletPass(direct, cv_temp.color_variance_texture(), *m_directHistory, 5, separate);
+        calc_variance(indirect_accumulated, cv_temp);
+        waveletPass(indirect, cv_temp.color_variance_texture(), *m_indirectHistory, 5, separate);
+        // auto def = Buffer::default_buff(width, height);
+        // this->draw_alpha(cv_temp.color_variance_texture(), def);
 
         // TODO: Update color and moments history
         // INPUT: 1st level filtered color, integrated moments
@@ -231,6 +241,7 @@ void Scene::render() {
         // TODO: Post-processing (tone mapping, temporal antialiasing)
         // INPUT: combined light and primary albedo
         // OUTPUT: rendered image
+
 
         std::cout << "End frame" << std::endl;
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
@@ -261,6 +272,15 @@ void Scene::render() {
 
 }
 
+void Scene::draw_alpha(const CS123::GL::Texture2D& tex, Buffer& output_buff){
+  output_buff.bind();
+  m_drawAlphaShader->bind();
+  m_drawAlphaShader->setTexture("color", tex);
+  renderQuad();
+  m_drawAlphaShader->unbind();
+  output_buff.unbind();
+}
+
 void Scene::flip_rgba_texture(const CS123::GL::Texture2D &tex, Buffer &output_buff) {
   output_buff.bind();
   m_initColorLumaShader->bind();
@@ -272,7 +292,7 @@ void Scene::flip_rgba_texture(const CS123::GL::Texture2D &tex, Buffer &output_bu
 
 void Scene::accumulate(ColorHistoryBuffer &history,
                        const Texture2D &new_color_tex,
-                       ColorVarianceBuffer &accumulator, float alpha) {
+                       ColorHistoryBuffer &accumulator, float alpha) {
   accumulator.bind();
   m_temporalAccumulationShader->bind();
   m_temporalAccumulationShader->setUniform("alpha", alpha);
@@ -283,6 +303,20 @@ void Scene::accumulate(ColorHistoryBuffer &history,
   renderQuad();
   m_temporalAccumulationShader->unbind();
   accumulator.unbind();
+
+  // TODO update history moments
+  accumulator.blit_to(GL_COLOR_ATTACHMENT0, history, GL_COLOR_ATTACHMENT0);
+  accumulator.blit_to(GL_COLOR_ATTACHMENT1, history, GL_COLOR_ATTACHMENT1);
+}
+
+void Scene::calc_variance(const ColorHistoryBuffer& accumulated, ColorVarianceBuffer& out){
+  out.bind();
+  m_calcVarianceShader->bind();
+  m_calcVarianceShader->setTexture("col_history", accumulated.color_history());
+  m_calcVarianceShader->setTexture("moments_history", accumulated.moments());
+  renderQuad();
+  m_calcVarianceShader->unbind();
+  out.unbind();
 }
 
 void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistoryBuffer& history, int iterations, bool separate) {
@@ -321,8 +355,10 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
     }
 
     // TODO XXX non-separated filter uses colorvariancebufer2 instead of 1
-    // TODO: Store 1st level filtered color
+    // update color history
+    glColorMaski(history.id(), true, true, true, false);
     this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), history);
+    glColorMaski(history.id(), true, true, true, true);
 
     if (separate) {
       for (int i = 1; i < iterations; i++) {

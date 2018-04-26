@@ -106,6 +106,8 @@ inline QRgb vec3ToQRgb(const glm::vec3 &v) {
   return qRgb(REAL2byte(v.x), REAL2byte(v.y), REAL2byte(v.z));
 }
 
+float luma(const glm::vec3& c);
+
 void toneMap(QRgb *imageData, glm::vec3 *intensityValues, std::size_t size);
 
 // simple tone map that just clamps to [0,1[(]or [0,255]

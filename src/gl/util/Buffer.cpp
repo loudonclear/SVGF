@@ -11,8 +11,14 @@ Buffer::Buffer(int width, int height) : m_width(width), m_height(height) {
   glGenFramebuffers(1, &m_id);
 }
 
+Buffer::Buffer(int width, int height, int id) : m_width(width), m_height(height), m_id(id) {}
+
 Buffer::~Buffer(){
   glDeleteFramebuffers(1, &m_id);
+}
+
+Buffer Buffer::default_buff(int width, int height){
+  return Buffer(width, height, 0);
 }
 
 void Buffer::bind() const {
@@ -56,6 +62,27 @@ void Buffer::display(GLenum attachment) {
   glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height,
                     GL_COLOR_BUFFER_BIT, GL_NEAREST);
+  glReadBuffer(static_cast<GLenum>(old_read_attach));
+  Buffer::unbind();
+}
+
+void Buffer::blit_to(GLenum in_attachment, Buffer& out_buff, GLenum out_attachment) const{
+  Buffer::unbind();
+  // set up read buffer
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_id);
+  int old_read_attach;
+  glGetIntegerv(GL_READ_BUFFER, &old_read_attach);
+  glReadBuffer(in_attachment);
+  // set up draw buffer
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, out_buff.id());
+  int old_draw_attach;
+  glGetIntegerv(GL_READ_BUFFER, &old_draw_attach);
+  glDrawBuffer(out_attachment);
+  // do blit
+  glBlitFramebuffer(0, 0, m_width, m_height, 0, 0, m_width, m_height,
+                    GL_COLOR_BUFFER_BIT, GL_NEAREST);
+  // cleanup
+  glDrawBuffer(static_cast<GLenum>(old_draw_attach));
   glReadBuffer(static_cast<GLenum>(old_read_attach));
   Buffer::unbind();
 }

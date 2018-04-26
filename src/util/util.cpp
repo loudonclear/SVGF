@@ -72,6 +72,10 @@ RenderBuffers::Element RenderBuffers::Element::zero() {
 }
 
 
+float luma(const glm::vec3& c){
+  return glm::dot(c, glm::vec3(0.2126, 0.7152, 0.0722));
+}
+
 void toneMap(QRgb *imageData, glm::vec3 *intensityValues, std::size_t size) {
   auto tonemap_lambda = [](const glm::vec3 &v) {
     return qRgb(REAL2byte(v.x / (v.x + 1.f)), REAL2byte(v.y / (v.y + 1.f)),
