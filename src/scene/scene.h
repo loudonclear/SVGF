@@ -86,7 +86,7 @@ private:
 
     /* Code for Running Shaders  */
     void draw_alpha(const CS123::GL::Texture2D& tex, Buffer& output_buff);
-    void flip_rgba_texture(const CS123::GL::Texture2D& tex, Buffer& output_buff);
+    void copy_texture_color(const CS123::GL::Texture2D& tex, Buffer& output_buff);
     // Combine history and new frame to create integrated color & moments
     void accumulate(ColorHistoryBuffer& history, const CS123::GL::Texture2D& new_color_tex, ColorHistoryBuffer& accumulator, float alpha);
     void calc_variance(const ColorHistoryBuffer& accumulated, ColorVarianceBuffer& out);

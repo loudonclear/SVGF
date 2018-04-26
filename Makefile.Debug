@@ -122,7 +122,8 @@ OBJECTS       = debug/.obj/glew.o \
 		debug/.obj/moc_view.o
 
 DIST          = src/BVH/License.txt \
-		src/BVH/README libs\glew-1.10.0\include\GL\glew.h \
+		src/BVH/README \
+		shaders/colorcopy.frag libs\glew-1.10.0\include\GL\glew.h \
 		src\BVH\BBox.h \
 		src\BVH\BVH.h \
 		src\BVH\IntersectionInfo.h \
@@ -248,16 +249,19 @@ compiler_rcc_clean:
 	-$(DEL_FILE) shaders\qrc_resources.cpp
 shaders/qrc_resources.cpp: resources.qrc \
 		C:/Qt/5.7/mingw53_32/bin/rcc.exe \
+		shaders/colorcopy.frag \
+		shaders/calc_variance.frag \
 		shaders/test.frag \
 		shaders/temporal_accumulation.frag \
 		shaders/reconstruction.frag \
 		shaders/shader.frag \
 		shaders/gbuffer.vert \
+		shaders/copy_moments.frag \
 		shaders/hwavelet.frag \
 		shaders/quad.vert \
-		shaders/colorluma.frag \
 		shaders/test.vert \
 		shaders/update_history.frag \
+		shaders/draw_alpha.frag \
 		shaders/shader.vert \
 		shaders/vwavelet.frag \
 		shaders/gbuffer.frag \
@@ -2757,7 +2761,7 @@ debug/.obj/mainwindow.o: src/ui/mainwindow.cpp src/ui/mainwindow.h \
 		C:/Qt/5.7/mingw53_32/include/QtGui/qtouchdevice.h \
 		C:/Qt/5.7/mingw53_32/include/QtWidgets/qtabwidget.h \
 		C:/Qt/5.7/mingw53_32/include/QtGui/qicon.h \
-		ui_mainwindow.h \
+		debug/.ui/ui_mainwindow.h \
 		C:/Qt/5.7/mingw53_32/include/QtCore/QVariant \
 		C:/Qt/5.7/mingw53_32/include/QtWidgets/QAction \
 		C:/Qt/5.7/mingw53_32/include/QtWidgets/qaction.h \

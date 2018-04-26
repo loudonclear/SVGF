@@ -71,19 +71,19 @@ RenderBuffers PathTracer::traceScene(const Scene& scene) {
 void PathTracer::render(const Scene& scene, RenderBuffers& buffs, glm::mat4x4 &invViewMat, int x0, int y0, int x1, int y1) {
     for (int y = y0; y < y1; y++) {
         for (int x = x0; x < x1; x++) {
-            int offset = x + (y * m_width);
+            int offset = x + ((m_height - y - 1) * m_width);
             auto pix_elem = tracePixel(x, y, scene, invViewMat);
-            if(pix_elem.isnan()){
-              std::cout << "MAMA MIA, " << x << ", " << y << std::endl;
-              if(x > x0){
-                pix_elem = buffs[offset-1];
-              } else if (y > y0) {
-                pix_elem = buffs[x + ((y-1) * m_width)];
-              } else {
-                // TODO actually clamp here instead of returning 0
-                pix_elem = RenderBuffers::Element::zero();
-              }
-            }
+//            if(pix_elem.isnan()){
+//              std::cout << "MAMA MIA, " << x << ", " << y << std::endl;
+//              if(x > x0){
+//                pix_elem = buffs[offset-1];
+//              } else if (y > y0) {
+//                pix_elem = buffs[x + ((y-1) * m_width)];
+//              } else {
+//                // TODO actually clamp here instead of returning 0
+//                pix_elem = RenderBuffers::Element::zero();
+//              }
+//            }
             buffs[offset] = pix_elem;
         }
     }

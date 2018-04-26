@@ -186,4 +186,5 @@ RESOURCES += \
 
 DISTFILES += \
     src/BVH/License.txt \
-    src/BVH/README
+    src/BVH/README \
+    shaders/colorcopy.frag

@@ -1,7 +1,6 @@
 <RCC>
     <qresource prefix="/">
         <file>shaders/calc_variance.frag</file>
-        <file>shaders/colorluma.frag</file>
         <file>shaders/copy_moments.frag</file>
         <file>shaders/draw_alpha.frag</file>
         <file>shaders/gbuffer.frag</file>
@@ -17,5 +16,6 @@
         <file>shaders/update_history.frag</file>
         <file>shaders/vwavelet.frag</file>
         <file>shaders/wavelet.frag</file>
+        <file>shaders/colorcopy.frag</file>
     </qresource>
 </RCC>

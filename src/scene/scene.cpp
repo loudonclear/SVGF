@@ -83,7 +83,7 @@ void Scene::init_shaders() {
       std::make_unique<Shader>(Shader::from_files("quad.vert", "wavelet.frag"));
   m_updateHistoryShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "update_history.frag"));
   m_initColorLumaShader = std::make_unique<Shader>(
-      Shader::from_files("quad.vert", "colorluma.frag"));
+      Shader::from_files("quad.vert", "colorcopy.frag"));
   m_reconstructionShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "reconstruction.frag"));
 }
@@ -209,7 +209,6 @@ void Scene::render() {
         // OUTPUT: direct/indirect lighting color
 
         auto buffers = this->trace();
-        high_resolution_clock::time_point t1 = high_resolution_clock::now();
         ColorBuffer cb = ColorBuffer(width, height, buffers);
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
@@ -234,7 +233,7 @@ void Scene::render() {
 
         ResultBuffer direct(width, height);
         ResultBuffer indirect(width, height);
-        bool separate = true;
+        bool separate = false;
         ColorVarianceBuffer cv_temp(width, height);
         calc_variance(direct_accumulated, cv_temp);
         waveletPass(direct, cv_temp.color_variance_texture(), *m_directHistory, 5, separate);
@@ -261,8 +260,6 @@ void Scene::render() {
         high_resolution_clock::time_point t3 = high_resolution_clock::now();
         float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
         std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
-        duration = duration_cast<milliseconds>( t3 - t1 ).count() / 1000.0;
-        std::cout << "Scene took " << duration << " seconds total." << std::endl << std::endl;
 
         // Swap current and previous G buffers
         m_SVGFGBuffer.swap(m_SVGFGBuffer_prev);
@@ -297,7 +294,7 @@ void Scene::draw_alpha(const CS123::GL::Texture2D& tex, Buffer& output_buff){
   output_buff.unbind();
 }
 
-void Scene::flip_rgba_texture(const CS123::GL::Texture2D &tex, Buffer &output_buff) {
+void Scene::copy_texture_color(const CS123::GL::Texture2D &tex, Buffer &output_buff) {
   output_buff.bind();
   m_initColorLumaShader->bind();
   m_initColorLumaShader->setTexture("color", tex);
@@ -337,7 +334,7 @@ void Scene::calc_variance(const ColorHistoryBuffer& accumulated, ColorVarianceBu
 
 void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistoryBuffer& history, int iterations, bool separate) {
     // Initial color and luma
-    flip_rgba_texture(texture, *m_colorVarianceBuffer1);
+    copy_texture_color(texture, *m_colorVarianceBuffer1);
 
     if (separate) {
       // Blit between two FBOs for colorVariance
@@ -360,7 +357,7 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
         renderQuad();
 
         // Store 1st level filtered color
-        this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), history);
+        this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), history);
     }
     else {
         m_colorVarianceBuffer2->bind();
@@ -373,13 +370,13 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
         renderQuad();
 
         // Store 1st level filtered color
-        this->flip_rgba_texture(m_colorVarianceBuffer2->color_variance_texture(), history);
+        this->copy_texture_color(m_colorVarianceBuffer2->color_variance_texture(), history);
     }
 
     // TODO XXX non-separated filter uses colorvariancebufer2 instead of 1
     // update color history
     glColorMaski(history.id(), true, true, true, false);
-    this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), history);
+    this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), history);
     glColorMaski(history.id(), true, true, true, true);
 
     if (separate) {
@@ -418,12 +415,12 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
 
     // Store 5th level filtered color
     if (separate) {
-        this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), rb);
+        this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), rb);
     } else {
         if (iterations % 2 == 0) {
-            this->flip_rgba_texture(m_colorVarianceBuffer2->color_variance_texture(), rb);
+            this->copy_texture_color(m_colorVarianceBuffer2->color_variance_texture(), rb);
         } else {
-            this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), rb);
+            this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), rb);
         }
     }
 }

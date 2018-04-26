@@ -9,9 +9,9 @@ uniform sampler2D indirect;
 uniform sampler2D albedo;
 
 void main() {
-    vec3 directColor = texture(direct, vec2(uv.x, 1-uv.y)).rgb;
-    vec3 indirectColor = texture(indirect, vec2(uv.x, 1-uv.y)).rgb;
-    vec3 albedoColor = texture(albedo, vec2(uv.x, 1-uv.y)).rgb;
+    vec3 directColor = texture(direct, uv).rgb;
+    vec3 indirectColor = texture(indirect, uv).rgb;
+    vec3 albedoColor = texture(albedo, uv).rgb;
 
     vec3 combined = (directColor + indirectColor) * albedoColor;
 
