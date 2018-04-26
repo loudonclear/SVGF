@@ -7,14 +7,14 @@ layout(location = 0) out vec4 cvnext;
 uniform sampler2D colorVariance;
 uniform sampler2D gPositionMeshID;
 uniform sampler2D gNormal;
-//uniform sampler2D luma;
 
 uniform int level = 0;
 uniform int support = 2;
-uniform float sigmaZ = 1.0;
+uniform float sigmaP = 0.75;
 uniform float sigmaN = 128.0;
 uniform float sigmaL = 4.0;
-uniform float sigmaP = 0.75;
+uniform float minLWeight = 0.2;
+
 
 const float epsilon = 0.00001;
 const float h[25] = float[25](1.0/256.0, 1.0/64.0, 3.0/128.0, 1.0/64.0, 1.0/256.0,
@@ -24,6 +24,9 @@ const float h[25] = float[25](1.0/256.0, 1.0/64.0, 3.0/128.0, 1.0/64.0, 1.0/256.
                               1.0/256.0, 1.0/64.0, 3.0/128.0, 1.0/64.0, 1.0/256.0);
 const float gaussKernel[9] = float[9](1.0/16.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/4.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/16.0);
 
+float luma(vec3 c){
+    return dot(c, vec3(0.2126, 0.7152, 0.0722));
+}
 
 void main() {
 
@@ -32,7 +35,7 @@ void main() {
 
     vec3 pNormal = texture(gNormal, uv).rgb;
     vec3 pColor = texture(colorVariance, uv).rgb;
-    float pLuminance = 0.0;//texture(luma, uv).r;
+    float pLuminance = luma(pColor);
 
 
     vec2 texelSize = 1.0 / textureSize(gNormal, 0).xy;
@@ -53,7 +56,7 @@ void main() {
 
                 vec3 qColor = texture(colorVariance, loc).rgb;
                 float qVariance = texture(colorVariance, loc).a;
-                float qLuminance = 0.0;//texture(luma, loc).r;
+                float qLuminance = luma(qColor);
 
                 vec3 t = pPosition - qPosition;
                 float dist2 = dot(t, t);
@@ -68,8 +71,8 @@ void main() {
                     }
                 }
                 float wl = min(1.0, exp(-abs(pLuminance - qLuminance) / (sigmaL * sqrt(gvl) + epsilon)));
+                wl = max(minLWeight, wl);
 
-                wl = 1.0;
                 float w = wp * wn * wl;
                 float weight = h[5*(offsety + support) + offsetx + support] * w;
 
@@ -80,7 +83,7 @@ void main() {
         }
     }
 
-    if (weights > 0.0) {
+    if (weights > epsilon) {
         cvnext.rgb = c / weights;
         cvnext.a = v / (weights * weights);
     } else {

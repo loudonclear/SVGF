@@ -70,8 +70,8 @@ private:
     std::shared_ptr<CS123::GL::Shader> m_testShader;
     std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_drawAlphaShader,
         m_gBufferShader, m_temporalAccumulationShader, m_calcVarianceShader,
-        m_copyMomentsShader, m_initColorLumaShader, m_waveletHorizontalShader,
-        m_waveletVerticalShader, m_waveletShader, m_updateHistoryShader,
+        m_copyMomentsShader, m_colorCopyShader,
+        m_waveletShader, m_updateHistoryShader,
         m_reconstructionShader;
     bool m_pipeline;
 
@@ -96,7 +96,7 @@ private:
     // texture - the color variance texture (R,G,B,Variance) to filter
     // iterations - how many iterations of filters to apply
     // separate - whether to use one horizontal and one vertical filter, or to use one huge 2d filter.
-    void waveletPass(ResultBuffer& rb, const CS123::GL::Texture2D& texture, ColorHistoryBuffer& history, int iterations, bool separate=true);
+    void waveletPass(ResultBuffer& rb, const CS123::GL::Texture2D& texture, ColorHistoryBuffer& history, int iterations);
     void recombineColor(const ColorBuffer& cb, const ResultBuffer& direct, const ResultBuffer& indirect);
 
   /* Scene BVH code  */

@@ -244,9 +244,9 @@ benchmark: first
 
 compiler_no_pch_compiler_make_all:
 compiler_no_pch_compiler_clean:
-compiler_rcc_make_all: shaders/qrc_resources.cpp
+compiler_rcc_make_all: shaders/qrc_resources.cpp shaders/qrc_resources.cpp
 compiler_rcc_clean:
-	-$(DEL_FILE) shaders\qrc_resources.cpp
+	-$(DEL_FILE) shaders\qrc_resources.cpp shaders\qrc_resources.cpp
 shaders/qrc_resources.cpp: resources.qrc \
 		C:/Qt/5.7/mingw53_32/bin/rcc.exe \
 		shaders/colorcopy.frag \
@@ -257,13 +257,30 @@ shaders/qrc_resources.cpp: resources.qrc \
 		shaders/shader.frag \
 		shaders/gbuffer.vert \
 		shaders/copy_moments.frag \
-		shaders/hwavelet.frag \
 		shaders/quad.vert \
 		shaders/test.vert \
 		shaders/update_history.frag \
 		shaders/draw_alpha.frag \
 		shaders/shader.vert \
-		shaders/vwavelet.frag \
+		shaders/gbuffer.frag \
+		shaders/wavelet.frag
+	C:\Qt\5.7\mingw53_32\bin\rcc.exe -name resources resources.qrc -o shaders\qrc_resources.cpp
+
+shaders/qrc_resources.cpp: resources.qrc \
+		C:/Qt/5.7/mingw53_32/bin/rcc.exe \
+		shaders/colorcopy.frag \
+		shaders/calc_variance.frag \
+		shaders/test.frag \
+		shaders/temporal_accumulation.frag \
+		shaders/reconstruction.frag \
+		shaders/shader.frag \
+		shaders/gbuffer.vert \
+		shaders/copy_moments.frag \
+		shaders/quad.vert \
+		shaders/test.vert \
+		shaders/update_history.frag \
+		shaders/draw_alpha.frag \
+		shaders/shader.vert \
 		shaders/gbuffer.frag \
 		shaders/wavelet.frag
 	C:\Qt\5.7\mingw53_32\bin\rcc.exe -name resources resources.qrc -o shaders\qrc_resources.cpp
@@ -2762,46 +2779,6 @@ debug/.obj/mainwindow.o: src/ui/mainwindow.cpp src/ui/mainwindow.h \
 		C:/Qt/5.7/mingw53_32/include/QtWidgets/qtabwidget.h \
 		C:/Qt/5.7/mingw53_32/include/QtGui/qicon.h \
 		debug/.ui/ui_mainwindow.h \
-		C:/Qt/5.7/mingw53_32/include/QtCore/QVariant \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/QAction \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qaction.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qactiongroup.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/QApplication \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qapplication.h \
-		C:/Qt/5.7/mingw53_32/include/QtCore/qcoreapplication.h \
-		C:/Qt/5.7/mingw53_32/include/QtCore/qeventloop.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qdesktopwidget.h \
-		C:/Qt/5.7/mingw53_32/include/QtGui/qguiapplication.h \
-		C:/Qt/5.7/mingw53_32/include/QtGui/qinputmethod.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/QButtonGroup \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qbuttongroup.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/QHBoxLayout \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qboxlayout.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qlayout.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qlayoutitem.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qgridlayout.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/QHeaderView \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qheaderview.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qabstractitemview.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qabstractscrollarea.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qframe.h \
-		C:/Qt/5.7/mingw53_32/include/QtCore/qabstractitemmodel.h \
-		C:/Qt/5.7/mingw53_32/include/QtCore/qitemselectionmodel.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qabstractitemdelegate.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qstyleoption.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qabstractspinbox.h \
-		C:/Qt/5.7/mingw53_32/include/QtGui/qvalidator.h \
-		C:/Qt/5.7/mingw53_32/include/QtCore/qregularexpression.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qslider.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qabstractslider.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qstyle.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qtabbar.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qrubberband.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/QMenu \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qmenu.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/QMenuBar \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/qmenubar.h \
-		C:/Qt/5.7/mingw53_32/include/QtWidgets/QWidget \
 		src/ui/view.h \
 		libs/glm/glm.hpp \
 		libs/glm/detail/_fixes.hpp \
@@ -2937,6 +2914,8 @@ debug/.obj/mainwindow.o: src/ui/mainwindow.cpp src/ui/mainwindow.h \
 		C:/Qt/5.7/mingw53_32/include/QtCore/qbasictimer.h \
 		C:/Qt/5.7/mingw53_32/include/QtCore/QCommandLineParser \
 		C:/Qt/5.7/mingw53_32/include/QtCore/qcommandlineparser.h \
+		C:/Qt/5.7/mingw53_32/include/QtCore/qcoreapplication.h \
+		C:/Qt/5.7/mingw53_32/include/QtCore/qeventloop.h \
 		C:/Qt/5.7/mingw53_32/include/QtCore/qcommandlineoption.h \
 		C:/Qt/5.7/mingw53_32/include/QtOpenGL/QGLFormat
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o debug\.obj\mainwindow.o src\ui\mainwindow.cpp

@@ -244,9 +244,9 @@ benchmark: first
 
 compiler_no_pch_compiler_make_all:
 compiler_no_pch_compiler_clean:
-compiler_rcc_make_all: shaders/qrc_resources.cpp
+compiler_rcc_make_all: shaders/qrc_resources.cpp shaders/qrc_resources.cpp
 compiler_rcc_clean:
-	-$(DEL_FILE) shaders\qrc_resources.cpp
+	-$(DEL_FILE) shaders\qrc_resources.cpp shaders\qrc_resources.cpp
 shaders/qrc_resources.cpp: resources.qrc \
 		C:/Qt/5.7/mingw53_32/bin/rcc.exe \
 		shaders/colorcopy.frag \
@@ -257,13 +257,30 @@ shaders/qrc_resources.cpp: resources.qrc \
 		shaders/shader.frag \
 		shaders/gbuffer.vert \
 		shaders/copy_moments.frag \
-		shaders/hwavelet.frag \
 		shaders/quad.vert \
 		shaders/test.vert \
 		shaders/update_history.frag \
 		shaders/draw_alpha.frag \
 		shaders/shader.vert \
-		shaders/vwavelet.frag \
+		shaders/gbuffer.frag \
+		shaders/wavelet.frag
+	C:\Qt\5.7\mingw53_32\bin\rcc.exe -name resources resources.qrc -o shaders\qrc_resources.cpp
+
+shaders/qrc_resources.cpp: resources.qrc \
+		C:/Qt/5.7/mingw53_32/bin/rcc.exe \
+		shaders/colorcopy.frag \
+		shaders/calc_variance.frag \
+		shaders/test.frag \
+		shaders/temporal_accumulation.frag \
+		shaders/reconstruction.frag \
+		shaders/shader.frag \
+		shaders/gbuffer.vert \
+		shaders/copy_moments.frag \
+		shaders/quad.vert \
+		shaders/test.vert \
+		shaders/update_history.frag \
+		shaders/draw_alpha.frag \
+		shaders/shader.vert \
 		shaders/gbuffer.frag \
 		shaders/wavelet.frag
 	C:\Qt\5.7\mingw53_32\bin\rcc.exe -name resources resources.qrc -o shaders\qrc_resources.cpp

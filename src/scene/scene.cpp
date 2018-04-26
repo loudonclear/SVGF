@@ -75,14 +75,10 @@ void Scene::init_shaders() {
       Shader::from_files("quad.vert", "temporal_accumulation.frag"));
   m_calcVarianceShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "calc_variance.frag"));
   m_copyMomentsShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "copy_moments.frag"));
-  m_waveletHorizontalShader = std::make_unique<Shader>(
-      Shader::from_files("quad.vert", "hwavelet.frag"));
-  m_waveletVerticalShader = std::make_unique<Shader>(
-      Shader::from_files("quad.vert", "vwavelet.frag"));
   m_waveletShader =
       std::make_unique<Shader>(Shader::from_files("quad.vert", "wavelet.frag"));
   m_updateHistoryShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "update_history.frag"));
-  m_initColorLumaShader = std::make_unique<Shader>(
+  m_colorCopyShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "colorcopy.frag"));
   m_reconstructionShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "reconstruction.frag"));
@@ -212,7 +208,7 @@ void Scene::render() {
         ColorBuffer cb = ColorBuffer(width, height, buffers);
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
-        // TODO: Temporal accumulation shader
+        // Temporal accumulation shader
         // INPUT: color, motion vectors, normals, depth, mesh/mat ids, color history, moments history, prev normals, prev depth, prev mesh/mat ids
         // OUTPUT: integrated color, integrated moments
         float integration_alpha = 0.2;
@@ -227,18 +223,18 @@ void Scene::render() {
         // OUTPUT: variance
 
 
-        // TODO: Wavelet filter
+        // Wavelet filter
         // INPUT: integrated color, variance, luminance
         // OUTPUT: 1st level filtered color, 5th level filtered color
 
         ResultBuffer direct(width, height);
         ResultBuffer indirect(width, height);
-        bool separate = false;
+
         ColorVarianceBuffer cv_temp(width, height);
         calc_variance(direct_accumulated, cv_temp);
-        waveletPass(direct, cv_temp.color_variance_texture(), *m_directHistory, 5, separate);
+        waveletPass(direct, cv_temp.color_variance_texture(), *m_directHistory, 5);
         calc_variance(indirect_accumulated, cv_temp);
-        waveletPass(indirect, cv_temp.color_variance_texture(), *m_indirectHistory, 5, separate);
+        waveletPass(indirect, cv_temp.color_variance_texture(), *m_indirectHistory, 5);
         // auto def = Buffer::default_buff(width, height);
         // this->draw_alpha(cv_temp.color_variance_texture(), def);
 
@@ -247,7 +243,7 @@ void Scene::render() {
         // OUTPUT: color history, moments history
 
 
-        // TODO: Reconstruction
+        // Reconstruction
         // INPUT: direct/indirect lighting, 5th level filtered color
         // OUTPUT: combined light and primary albedo
         this->recombineColor(cb, direct, indirect);
@@ -296,10 +292,10 @@ void Scene::draw_alpha(const CS123::GL::Texture2D& tex, Buffer& output_buff){
 
 void Scene::copy_texture_color(const CS123::GL::Texture2D &tex, Buffer &output_buff) {
   output_buff.bind();
-  m_initColorLumaShader->bind();
-  m_initColorLumaShader->setTexture("color", tex);
+  m_colorCopyShader->bind();
+  m_colorCopyShader->setTexture("color", tex);
   renderQuad();
-  m_initColorLumaShader->unbind();
+  m_colorCopyShader->unbind();
   output_buff.unbind();
 }
 
@@ -332,77 +328,35 @@ void Scene::calc_variance(const ColorHistoryBuffer& accumulated, ColorVarianceBu
   out.unbind();
 }
 
-void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistoryBuffer& history, int iterations, bool separate) {
-    // Initial color and luma
+void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistoryBuffer& history, int iterations) {
+    // Initial color
     copy_texture_color(texture, *m_colorVarianceBuffer1);
 
-    if (separate) {
-      // Blit between two FBOs for colorVariance
-        m_colorVarianceBuffer2->bind();
-        m_waveletHorizontalShader->bind();
-        m_waveletHorizontalShader->setTexture(
-            "colorVariance", m_colorVarianceBuffer1->color_variance_texture());
-        m_waveletHorizontalShader->setTexture("gPositionMeshID", m_SVGFGBuffer->position_mesh_id_texture());
-        m_waveletHorizontalShader->setTexture("gNormal", m_SVGFGBuffer->normal_texture());
-        m_waveletHorizontalShader->setUniform("level", 0);
-        renderQuad();
+    // Blit between two FBOs for colorVariance
+    m_colorVarianceBuffer2->bind();
+    m_waveletShader->bind();
+    m_waveletShader->setTexture("colorVariance", m_colorVarianceBuffer1->color_variance_texture());
+    m_waveletShader->setTexture("gPositionMeshID",
+                                m_SVGFGBuffer->position_mesh_id_texture());
+    m_waveletShader->setTexture("gNormal", m_SVGFGBuffer->normal_texture());
+    m_waveletShader->setUniform("level", 0);
+    renderQuad();
 
-        m_colorVarianceBuffer1->bind();
-        m_waveletVerticalShader->bind();
-        m_waveletVerticalShader->setTexture(
-            "colorVariance", m_colorVarianceBuffer2->color_variance_texture());
-        m_waveletVerticalShader->setTexture("gPositionMeshID", m_SVGFGBuffer->position_mesh_id_texture());
-        m_waveletVerticalShader->setTexture("gNormal", m_SVGFGBuffer->normal_texture());
-        m_waveletVerticalShader->setUniform("level", 0);
-        renderQuad();
-
-        // Store 1st level filtered color
-        this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), history);
-    }
-    else {
-        m_colorVarianceBuffer2->bind();
-        m_waveletShader->bind();
-        m_waveletShader->setTexture("colorVariance", m_colorVarianceBuffer1->color_variance_texture());
-        m_waveletShader->setTexture("gPositionMeshID",
-                                    m_SVGFGBuffer->position_mesh_id_texture());
-        m_waveletShader->setTexture("gNormal", m_SVGFGBuffer->normal_texture());
-        m_waveletShader->setUniform("level", 0);
-        renderQuad();
-
-        // Store 1st level filtered color
-        this->copy_texture_color(m_colorVarianceBuffer2->color_variance_texture(), history);
-    }
-
-    // TODO XXX non-separated filter uses colorvariancebufer2 instead of 1
-    // update color history
+    // update color history with 1st level filtered color
     glColorMaski(history.id(), true, true, true, false);
-    this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), history);
+    this->copy_texture_color(m_colorVarianceBuffer2->color_variance_texture(), history);
     glColorMaski(history.id(), true, true, true, true);
 
-    if (separate) {
-      for (int i = 1; i < iterations; i++) {
-        m_colorVarianceBuffer2->bind();
-        m_waveletHorizontalShader->bind();
-        m_waveletHorizontalShader->setUniform("level", i);
-        m_waveletHorizontalShader->setTexture("colorVariance", m_colorVarianceBuffer1->color_variance_texture());
-        renderQuad();
 
-        m_colorVarianceBuffer1->bind();
-        m_waveletVerticalShader->bind();
-        m_waveletVerticalShader->setUniform("level", i);
-        m_waveletVerticalShader->setTexture("colorVariance", m_colorVarianceBuffer2->color_variance_texture());
-        renderQuad();
-      }
-    } else {
-      for (int i = 1; i < iterations; ++i) {
+    for (int i = 1; i < iterations; ++i) {
         // non-owning references used to alternate between the two buffers
         ColorVarianceBuffer *cvb_input, *cvb_output;
         if (i % 2 == 0) {
-          cvb_input = m_colorVarianceBuffer2.get();
-          cvb_output = m_colorVarianceBuffer1.get();
+            cvb_input = m_colorVarianceBuffer2.get();
+            cvb_output = m_colorVarianceBuffer1.get();
         } else {
-          cvb_input = m_colorVarianceBuffer1.get();
-          cvb_output = m_colorVarianceBuffer2.get();
+            cvb_input = m_colorVarianceBuffer1.get();
+            cvb_output = m_colorVarianceBuffer2.get();
         }
 
         cvb_input->bind();
@@ -410,18 +364,13 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
         m_waveletShader->setUniform("level", i);
         m_waveletShader->setTexture("colorVariance", cvb_output->color_variance_texture());
         renderQuad();
-      }
     }
 
     // Store 5th level filtered color
-    if (separate) {
-        this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), rb);
+    if (iterations % 2 == 0) {
+        this->copy_texture_color(m_colorVarianceBuffer2->color_variance_texture(), rb);
     } else {
-        if (iterations % 2 == 0) {
-            this->copy_texture_color(m_colorVarianceBuffer2->color_variance_texture(), rb);
-        } else {
-            this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), rb);
-        }
+        this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), rb);
     }
 }
 
