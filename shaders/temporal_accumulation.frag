@@ -10,7 +10,7 @@ uniform float alpha;
 
 uniform sampler2D col_history;
 uniform sampler2D current_color;
-uniform sampler2D moments;
+//uniform sampler2D moments;
 
 void main(){
   // TODO right now we're not taking into account motion. Just accumulate color directly;
@@ -18,8 +18,9 @@ void main(){
   // TODO filtered color input based on GBuffer
   vec3 col = texture(current_color, uv).rgb;
   vec3 col_prev = texture(col_history, uv).rgb;
-  vec2 moments = texture(moments, uv).rg;
+  //vec2 moments = texture(moments, uv).rg;
   float l = texture(col_history, uv).a;
+
   // if l == 0, set alpha to 1 and discard col_prev;
   float alpha_weight = max(float(l == 0), alpha);
   // alpha_weight = alpha; // ignore l for now, just test interpolation

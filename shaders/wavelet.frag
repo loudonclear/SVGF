@@ -5,7 +5,7 @@ in vec2 uv;
 layout(location = 0) out vec4 cvnext;
 
 uniform sampler2D colorVariance;
-uniform sampler2D gDepthIDs;
+uniform sampler2D gPositionMeshID;
 uniform sampler2D gNormal;
 //uniform sampler2D luma;
 
@@ -14,6 +14,7 @@ uniform int support = 2;
 uniform float sigmaZ = 1.0;
 uniform float sigmaN = 128.0;
 uniform float sigmaL = 4.0;
+uniform float sigmaP = 0.75;
 
 const float epsilon = 0.00001;
 const float h[25] = float[25](1.0/256.0, 1.0/64.0, 3.0/128.0, 1.0/64.0, 1.0/256.0,
@@ -26,9 +27,8 @@ const float gaussKernel[9] = float[9](1.0/16.0, 1.0/8.0, 1.0/16.0, 1.0/8.0, 1.0/
 
 void main() {
 
-    float pDepth = texture(gDepthIDs, uv).r;
-    float pMeshID = texture(gDepthIDs, uv).g;
-    float pMatID = texture(gDepthIDs, uv).b;
+    vec3 pPosition = texture(gPositionMeshID, uv).rgb;
+    float pMeshID = texture(gPositionMeshID, uv).a;
 
     vec3 pNormal = texture(gNormal, uv).rgb;
     vec3 pColor = texture(colorVariance, uv).rgb;
@@ -42,31 +42,22 @@ void main() {
     float v = 0.0;
     float weights = 0.0;
 
-
-    float z_minus_x = texture(gDepthIDs, uv - vec2(texelSize.x, 0.0)).r;
-    float z_plus_x = texture(gDepthIDs, uv + vec2(texelSize.x, 0.0)).r;
-    float z_minus_y = texture(gDepthIDs, uv - vec2(0.0, texelSize.y)).r;
-    float z_plus_y = texture(gDepthIDs, uv + vec2(0.0, texelSize.y)).r;
-    vec2 grad_z = vec2(z_plus_x - z_minus_x, z_plus_y - z_minus_y) / (2.0 * texelSize);
-
     for (int offsetx = -support; offsetx <= support; offsetx++) {
         for (int offsety = -support; offsety <= support; offsety++) {
             vec2 loc = uv + vec2(step * offsetx * texelSize.x, step * offsety * texelSize.y);
-            float qMeshID = texture(gDepthIDs, loc).g;
-            float qMatID = texture(gDepthIDs, loc).b;
+            float qMeshID = texture(gPositionMeshID, loc).a;
 
-            if (pMeshID == qMeshID && pMatID == qMatID) {
-                float qDepth = texture(gDepthIDs, loc).r;
+            if (pMeshID == qMeshID) {
+                vec3 qPosition = texture(gPositionMeshID, loc).rgb;
                 vec3 qNormal = texture(gNormal, loc).rgb;
 
                 vec3 qColor = texture(colorVariance, loc).rgb;
                 float qVariance = texture(colorVariance, loc).a;
                 float qLuminance = 0.0;//texture(luma, loc).r;
 
-                vec2 dz = vec2(pDepth - texture(gDepthIDs, vec2(loc.x, uv.y)).r, pDepth - texture(gDepthIDs, vec2(uv.x, loc.y)).r);
-                // float wz = min(1.0, exp(-abs(pDepth - qDepth) / (sigmaZ * abs(dot(dz, uv - loc)) + epsilon)));
-
-                float wz = min(1.0, exp(-abs(pDepth - qDepth) / (sigmaZ * abs(dot(grad_z, loc - uv)) + epsilon)));
+                vec3 t = pPosition - qPosition;
+                float dist2 = dot(t, t);
+                float wp = min(exp(-(dist2)/sigmaP), 1.0);
 
                 float wn = pow(max(0.0, dot(pNormal, qNormal)), sigmaN);
 
@@ -79,7 +70,7 @@ void main() {
                 float wl = min(1.0, exp(-abs(pLuminance - qLuminance) / (sigmaL * sqrt(gvl) + epsilon)));
 
                 wl = 1.0;
-                float w = wz * wn * wl;
+                float w = wp * wn * wl;
                 float weight = h[5*(offsety + support) + offsetx + support] * w;
 
                 c += weight * qColor;

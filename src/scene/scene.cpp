@@ -30,7 +30,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace CS123::GL;
 
-Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height), m_pipeline(false)
+Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height), m_pipeline(false), samples(samples)
 {
     init_shaders();
     m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
@@ -122,7 +122,7 @@ RenderBuffers Scene::trace(bool save) {
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
     float duration = duration_cast<milliseconds>( t2 - t1 ).count() / 1000.0;
-    std::cout << "Scene took " << duration << " seconds to render." << std::endl;
+    std::cout << "Scene took " << duration << " seconds to trace." << std::endl;
     if (save) {
       save_render_buffers(buffers);
     }
@@ -158,6 +158,21 @@ void renderQuad()
     glBindVertexArray(0);
 }
 
+void Scene::resize(int w, int h) {
+    width = w;
+    height = h;
+    QuaternionCamera cam = getCamera();
+    cam.setAspectRatio(static_cast<float>(w) / static_cast<float>(h));
+    this->setCamera(cam);
+
+    m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
+    m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
+    m_SVGFGBuffer_prev = std::make_shared<SVGFGBuffer>(width, height);
+    m_colorVarianceBuffer1 = std::make_shared<ColorVarianceBuffer>(width, height);
+    m_colorVarianceBuffer2 = std::make_shared<ColorVarianceBuffer>(width, height);
+    m_directHistory = std::make_unique<ColorHistoryBuffer>(width, height);
+    m_indirectHistory = std::make_unique<ColorHistoryBuffer>(width, height);
+}
 
 void Scene::render() {
     Buffer::unbind();
@@ -192,6 +207,7 @@ void Scene::render() {
 
         auto buffers = this->trace();
         ColorBuffer cb = ColorBuffer(width, height, buffers);
+        high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
         // TODO: Temporal accumulation shader
         // INPUT: color, motion vectors, normals, depth, mesh/mat ids, color history, moments history, prev normals, prev depth, prev mesh/mat ids
@@ -211,7 +227,7 @@ void Scene::render() {
         // TODO: Wavelet filter
         // INPUT: integrated color, variance, luminance
         // OUTPUT: 1st level filtered color, 5th level filtered color
-        bool separate = true;
+        bool separate = false;
         ResultBuffer direct(width, height);
         ResultBuffer indirect(width, height);
         waveletPass(direct, direct_accumulated.color_variance_texture(), *m_directHistory, 5, separate);
@@ -235,10 +251,11 @@ void Scene::render() {
         // cb.display();
 
 
-        std::cout << "End frame" << std::endl;
-        high_resolution_clock::time_point t2 = high_resolution_clock::now();
-        float duration = duration_cast<milliseconds>( t2 - t1 ).count() / 1000.0;
+        high_resolution_clock::time_point t3 = high_resolution_clock::now();
+        float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
         std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
+        duration = duration_cast<milliseconds>( t3 - t1 ).count() / 1000.0;
+        std::cout << "Scene took " << duration << " seconds total." << std::endl << std::endl;
 
         // Swap current and previous G buffers
         m_SVGFGBuffer.swap(m_SVGFGBuffer_prev);
@@ -298,7 +315,7 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
         m_waveletHorizontalShader->bind();
         m_waveletHorizontalShader->setTexture(
             "colorVariance", m_colorVarianceBuffer1->color_variance_texture());
-        m_waveletHorizontalShader->setTexture("gDepthIDs", m_SVGFGBuffer->depth_ids_texture());
+        m_waveletHorizontalShader->setTexture("gPositionMeshID", m_SVGFGBuffer->position_mesh_id_texture());
         m_waveletHorizontalShader->setTexture("gNormal", m_SVGFGBuffer->normal_texture());
         m_waveletHorizontalShader->setUniform("level", 0);
         renderQuad();
@@ -307,25 +324,29 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
         m_waveletVerticalShader->bind();
         m_waveletVerticalShader->setTexture(
             "colorVariance", m_colorVarianceBuffer2->color_variance_texture());
-        m_waveletVerticalShader->setTexture("gDepthIDs", m_SVGFGBuffer->depth_ids_texture());
+        m_waveletVerticalShader->setTexture("gPositionMeshID", m_SVGFGBuffer->position_mesh_id_texture());
         m_waveletVerticalShader->setTexture("gNormal", m_SVGFGBuffer->normal_texture());
         m_waveletVerticalShader->setUniform("level", 0);
         renderQuad();
+
+        // Store 1st level filtered color
+        this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), history);
     }
     else {
         m_colorVarianceBuffer2->bind();
         m_waveletShader->bind();
         m_waveletShader->setTexture("colorVariance", m_colorVarianceBuffer1->color_variance_texture());
-        m_waveletShader->setTexture("gDepthIDs",
-                                    m_SVGFGBuffer->depth_ids_texture());
+        m_waveletShader->setTexture("gPositionMeshID",
+                                    m_SVGFGBuffer->position_mesh_id_texture());
         m_waveletShader->setTexture("gNormal", m_SVGFGBuffer->normal_texture());
         m_waveletShader->setUniform("level", 0);
         renderQuad();
+
+        // Store 1st level filtered color
+        this->flip_rgba_texture(m_colorVarianceBuffer2->color_variance_texture(), history);
     }
 
-    // TODO XXX non-separated filter uses colorvariancebufer2 instead of 1
-    // TODO: Store 1st level filtered color
-    this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), history);
+
 
     if (separate) {
       for (int i = 1; i < iterations; i++) {
@@ -360,7 +381,17 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
         renderQuad();
       }
     }
-    this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), rb);
+
+    // Store 5th level filtered color
+    if (separate) {
+        this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), rb);
+    } else {
+        if (iterations % 2 == 0) {
+            this->flip_rgba_texture(m_colorVarianceBuffer2->color_variance_texture(), rb);
+        } else {
+            this->flip_rgba_texture(m_colorVarianceBuffer1->color_variance_texture(), rb);
+        }
+    }
 }
 
 void Scene::recombineColor(const ColorBuffer &cb, const ResultBuffer &direct,

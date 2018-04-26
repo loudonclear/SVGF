@@ -33,6 +33,7 @@ public:
     static std::unique_ptr<Scene> load(QString filename, int width, int height);
 
     RenderBuffers trace(bool save = false);
+    void resize(int w, int h);
     void render();
     bool& pipeline();
     const bool& pipeline() const;
@@ -54,6 +55,7 @@ public:
 
 private:
     int width, height;
+    unsigned int samples;
 
     BVH *m_bvh;
     std::vector<Object *> *_objects;

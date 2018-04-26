@@ -39,7 +39,7 @@ public:
     virtual glm::vec3 getCentroid() const override;
 
     const glm::ivec3 getTriangleIndices(int faceIndex) const;
-    const tinyobj::material_t& getMaterial(int faceIndex) const;
+    const tinyobj::material_t &getMaterial(int faceIndex) const;
 
     const glm::vec3 getVertex(int vertexIndex) const;
     const glm::vec3 getNormal(int vertexIndex) const;
