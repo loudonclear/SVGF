@@ -72,7 +72,6 @@ Shader& Shader::operator=(Shader &&that) {
     m_textureSlots = std::move(that.m_textureSlots);
 
     that.m_programID = 0;
-
     return *this;
 }
 
