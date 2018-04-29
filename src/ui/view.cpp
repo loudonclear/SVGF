@@ -35,6 +35,7 @@ View::View(QWidget *parent)
   m_cli_parser.addHelpOption();
   m_cli_parser.addPositionalArgument("scene", ".xml scene file to load for simulation");
   m_cli_parser.addOption({{"s", "samples"}, "Number of pathtracing samples", "samples"});
+  m_cli_parser.addOption({{"a", "alpha"}, "How much to rely on current frame instead of history", "alpha", "0.2"});
   m_cli_parser.process(*QApplication::instance());
 }
 
@@ -76,6 +77,7 @@ void View::initializeGL() {
                     << absolute_scene_path.toStdString() << std::endl;
         }
         m_scene->pathTracer().numSamples(m_cli_parser.value("samples").toUInt());
+        m_scene->integration_alpha() = m_cli_parser.value("alpha").toFloat();
     }
 }
 
@@ -98,8 +100,8 @@ void View::paintGL() {
 void View::updateInputs(float dt) {
     if (!m_scene) return;
 
-    const float moveSpeed = 5.f;
-    const float rotateSpeed = 100.f;
+    const float moveSpeed = 1.5f;
+    const float rotateSpeed = 50.f;
 
     QuaternionCamera c = m_scene->getCamera();
     if (m_keys[Qt::Key_A]) {

@@ -71,6 +71,8 @@ void Scene::init_shaders() {
       Shader::from_files("quad.vert", "draw_alpha.frag"));
   m_gBufferShader = std::make_unique<Shader>(
       Shader::from_files("gbuffer.vert", "gbuffer.frag"));
+  m_motionVectorsShader = std::make_unique<Shader>(
+      Shader::from_files("quad.vert", "motion_vectors.frag"));
   m_temporalAccumulationShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "temporal_accumulation.frag"));
   m_calcVarianceShader = std::make_unique<Shader>(Shader::from_files("quad.vert", "calc_variance.frag"));
@@ -185,7 +187,9 @@ void Scene::render() {
         // OUTPUT: depth, normals, mesh/mat ids, motion vectors
 
         m_SVGFGBuffer->bind();
+        glClearColor(0.0, 0.0, 0.0, -1);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClearColor(0.0, 0.0, 0.0, 0);
 
         m_gBufferShader->bind();
         m_gBufferShader->setUniform("p", m_camera.getProjectionMatrix());
@@ -199,24 +203,26 @@ void Scene::render() {
         m_gBufferShader->unbind();
         m_SVGFGBuffer->unbind();
 
+        // Calc motion vectors
+        // This stores texture coordinates into the prevous screen as (u_prev, v_prev, valid) (RGB)
+        ResultBuffer motion_vectors(width, height);
+        calc_motion_vectors(motion_vectors);
 
         // Pathtracing
         // INPUT: scene
         // OUTPUT: direct/indirect lighting color
-
+        high_resolution_clock::time_point t1 = high_resolution_clock::now();
         auto buffers = this->trace();
-        ColorBuffer cb = ColorBuffer(width, height, buffers);
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
+        ColorBuffer cb = ColorBuffer(width, height, buffers);
 
         // Temporal accumulation shader
         // INPUT: color, motion vectors, normals, depth, mesh/mat ids, color history, moments history, prev normals, prev depth, prev mesh/mat ids
         // OUTPUT: integrated color, integrated moments
-        float integration_alpha = 0.2;
         ColorHistoryBuffer direct_accumulated(width, height);
+        accumulate(*m_directHistory, motion_vectors, cb.getDirectTexture(), direct_accumulated, m_integration_alpha);
         ColorHistoryBuffer indirect_accumulated(width, height);
-
-        accumulate(*m_directHistory, cb.getDirectTexture(), direct_accumulated, integration_alpha);
-        accumulate(*m_indirectHistory, cb.getIndirectTexture(), indirect_accumulated, integration_alpha);
+        accumulate(*m_indirectHistory, motion_vectors, cb.getIndirectTexture(), indirect_accumulated, m_integration_alpha);
 
         // TODO: Variance estimation
         // INPUT: integrated moments
@@ -235,8 +241,6 @@ void Scene::render() {
         waveletPass(direct, cv_temp.color_variance_texture(), *m_directHistory, 5);
         calc_variance(indirect_accumulated, cv_temp);
         waveletPass(indirect, cv_temp.color_variance_texture(), *m_indirectHistory, 5);
-        // auto def = Buffer::default_buff(width, height);
-        // this->draw_alpha(cv_temp.color_variance_texture(), def);
 
         // TODO: Update color and moments history
         // INPUT: 1st level filtered color, integrated moments
@@ -252,13 +256,16 @@ void Scene::render() {
         // TODO: Post-processing (tone mapping, temporal antialiasing)
         // INPUT: combined light and primary albedo
         // OUTPUT: rendered image
+        // this->draw_alpha(motion_vectors.color_texture());
 
         high_resolution_clock::time_point t3 = high_resolution_clock::now();
         float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
         std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
 
-        // Swap current and previous G buffers
+        // Swap current and previous G buffers, update camera_prev
+        // TODO maybe don't do this in render code?
         m_SVGFGBuffer.swap(m_SVGFGBuffer_prev);
+        m_camera_prev = m_camera;
     } else {
         // Visualization
         m_defaultShader->bind();
@@ -281,13 +288,13 @@ void Scene::render() {
 
 }
 
-void Scene::draw_alpha(const CS123::GL::Texture2D& tex, Buffer& output_buff){
-  output_buff.bind();
+void Scene::draw_alpha(const CS123::GL::Texture2D& tex){
+  Buffer::unbind();
   m_drawAlphaShader->bind();
   m_drawAlphaShader->setTexture("color", tex);
   renderQuad();
   m_drawAlphaShader->unbind();
-  output_buff.unbind();
+  Buffer::unbind();
 }
 
 void Scene::copy_texture_color(const CS123::GL::Texture2D &tex, Buffer &output_buff) {
@@ -299,7 +306,26 @@ void Scene::copy_texture_color(const CS123::GL::Texture2D &tex, Buffer &output_b
   output_buff.unbind();
 }
 
-void Scene::accumulate(ColorHistoryBuffer &history,
+
+void Scene::calc_motion_vectors(ResultBuffer& out) const {
+  if ((m_camera.getViewMatrix() != m_camera_prev.getViewMatrix()) ||
+      (m_camera.getProjectionMatrix() != m_camera_prev.getProjectionMatrix())) {
+    std::cout << "CHANGE" << std::endl;
+  }
+  out.bind();
+  m_motionVectorsShader->bind();
+  m_motionVectorsShader->setUniform("v_prev", m_camera_prev.getViewMatrix());
+  m_motionVectorsShader->setUniform("p_prev", m_camera_prev.getProjectionMatrix());
+  m_motionVectorsShader->setTexture("pos_id_prev", m_SVGFGBuffer_prev->position_mesh_id_texture());
+  // m_motionVectorsShader->setTexture("normals_prev", m_SVGFGBuffer_prev->normal_texture());
+  m_motionVectorsShader->setTexture("pos_id", m_SVGFGBuffer->position_mesh_id_texture());
+  // m_motionVectorsShader->setTexture("normals", m_SVGFGBuffer->normal_texture());
+  renderQuad();
+  m_motionVectorsShader->unbind();
+  out.unbind();
+}
+
+void Scene::accumulate(ColorHistoryBuffer &history, const ResultBuffer& motion_vectors,
                        const Texture2D &new_color_tex,
                        ColorHistoryBuffer &accumulator, float alpha) {
   accumulator.bind();
@@ -307,6 +333,8 @@ void Scene::accumulate(ColorHistoryBuffer &history,
   m_temporalAccumulationShader->setUniform("alpha", alpha);
   m_temporalAccumulationShader->setTexture("col_history",
                                            history.color_history());
+  m_temporalAccumulationShader->setTexture("motion_vectors",
+                                           motion_vectors.color_texture());
   m_temporalAccumulationShader->setTexture("current_color", new_color_tex);
   m_temporalAccumulationShader->setTexture("moments", history.moments());
   renderQuad();
@@ -579,6 +607,7 @@ const QuaternionCamera &Scene::getCamera() const
 
 void Scene::setCamera(const QuaternionCamera &camera)
 {
+  // m_camera_prev = camera;
     m_camera = camera;
 }
 

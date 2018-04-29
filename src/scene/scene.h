@@ -50,17 +50,19 @@ public:
     PathTracer &pathTracer() { return *m_pathTracer; }
     const PathTracer &pathTracer() const { return *m_pathTracer; }
 
+    float& integration_alpha() {return m_integration_alpha; }
+    const float& integration_alpha() const {return m_integration_alpha; }
+
     //const std::vector<CS123SceneLightData>& getLights();
     std::vector<Object *> *lights;
 
 private:
     int width, height;
-    unsigned int samples;
 
     BVH *m_bvh;
     std::vector<Object *> *_objects;
 
-    QuaternionCamera m_camera;
+    QuaternionCamera m_camera, m_camera_prev;
     std::shared_ptr<PathTracer> m_pathTracer;
 
     std::shared_ptr<SVGFGBuffer> m_SVGFGBuffer, m_SVGFGBuffer_prev;
@@ -68,11 +70,11 @@ private:
     std::unique_ptr<ColorHistoryBuffer> m_directHistory, m_indirectHistory;
 
     std::shared_ptr<CS123::GL::Shader> m_testShader;
-    std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_drawAlphaShader,
-        m_gBufferShader, m_temporalAccumulationShader, m_calcVarianceShader,
-        m_copyMomentsShader, m_colorCopyShader,
-        m_waveletShader, m_updateHistoryShader,
-        m_reconstructionShader;
+  std::shared_ptr<CS123::GL::Shader> m_defaultShader, m_drawAlphaShader,
+    m_gBufferShader, m_motionVectorsShader, m_temporalAccumulationShader, m_calcVarianceShader,
+    m_copyMomentsShader, m_colorCopyShader,
+    m_waveletShader, m_updateHistoryShader,
+    m_reconstructionShader;
     bool m_pipeline;
 
     // for debug
@@ -81,14 +83,24 @@ private:
     CS123SceneGlobalData m_globalData;
     std::vector<CS123SceneLightData> m_lights;
 
+    // filtering params
+    unsigned int samples;
+    float m_integration_alpha = 0.2;
+
     // convenience function for loading all the shaders.
     void init_shaders();
 
     /* Code for Running Shaders  */
-    void draw_alpha(const CS123::GL::Texture2D& tex, Buffer& output_buff);
     void copy_texture_color(const CS123::GL::Texture2D& tex, Buffer& output_buff);
+    void draw_alpha(const CS123::GL::Texture2D& tex);
+    void flip_rgba_texture(const CS123::GL::Texture2D& tex, Buffer& output_buff);
+    // Calculate motion vectors from the previous frame.
+    void calc_motion_vectors(ResultBuffer& out) const;
     // Combine history and new frame to create integrated color & moments
-    void accumulate(ColorHistoryBuffer& history, const CS123::GL::Texture2D& new_color_tex, ColorHistoryBuffer& accumulator, float alpha);
+    void accumulate(ColorHistoryBuffer &history,
+                    const ResultBuffer &motion_vectors,
+                    const CS123::GL::Texture2D &new_color_tex,
+                    ColorHistoryBuffer &accumulator, float alpha);
     void calc_variance(const ColorHistoryBuffer& accumulated, ColorVarianceBuffer& out);
 
     // Does spatial wavelet filtering using several iterations with increasing footprint.
