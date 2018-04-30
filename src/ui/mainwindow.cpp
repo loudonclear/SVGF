@@ -15,3 +15,8 @@ MainWindow::~MainWindow()
 {
     delete ui;
 }
+
+void MainWindow::on_actionSave_triggered()
+{
+    ui->view->grabFrameBuffer().save("image.png");
+}
