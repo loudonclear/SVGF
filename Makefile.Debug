@@ -244,28 +244,9 @@ benchmark: first
 
 compiler_no_pch_compiler_make_all:
 compiler_no_pch_compiler_clean:
-compiler_rcc_make_all: shaders/qrc_resources.cpp shaders/qrc_resources.cpp
+compiler_rcc_make_all: shaders/qrc_resources.cpp
 compiler_rcc_clean:
-	-$(DEL_FILE) shaders\qrc_resources.cpp shaders\qrc_resources.cpp
-shaders/qrc_resources.cpp: resources.qrc \
-		C:/Qt/5.7/mingw53_32/bin/rcc.exe \
-		shaders/colorcopy.frag \
-		shaders/calc_variance.frag \
-		shaders/test.frag \
-		shaders/temporal_accumulation.frag \
-		shaders/reconstruction.frag \
-		shaders/shader.frag \
-		shaders/gbuffer.vert \
-		shaders/copy_moments.frag \
-		shaders/quad.vert \
-		shaders/test.vert \
-		shaders/update_history.frag \
-		shaders/draw_alpha.frag \
-		shaders/shader.vert \
-		shaders/gbuffer.frag \
-		shaders/wavelet.frag
-	C:\Qt\5.7\mingw53_32\bin\rcc.exe -name resources resources.qrc -o shaders\qrc_resources.cpp
-
+	-$(DEL_FILE) shaders\qrc_resources.cpp
 shaders/qrc_resources.cpp: resources.qrc \
 		C:/Qt/5.7/mingw53_32/bin/rcc.exe \
 		shaders/colorcopy.frag \
@@ -390,7 +371,7 @@ debug/.moc/moc_mainwindow.cpp: C:/Qt/5.7/mingw53_32/include/QtWidgets/QMainWindo
 		C:/Qt/5.7/mingw53_32/include/QtGui/qicon.h \
 		src/ui/mainwindow.h \
 		C:/Qt/5.7/mingw53_32/bin/moc.exe
-	C:\Qt\5.7\mingw53_32\bin\moc.exe $(DEFINES) -D__GNUC__ -DWIN32 -IC:/Qt/5.7/mingw53_32/mkspecs/win32-g++ -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/libs -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/src -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/src/ui -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/libs/glm -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/libs/glew-1.10.0/include -IC:/Qt/5.7/mingw53_32/include -IC:/Qt/5.7/mingw53_32/include/QtOpenGL -IC:/Qt/5.7/mingw53_32/include/QtWidgets -IC:/Qt/5.7/mingw53_32/include/QtGui -IC:/Qt/5.7/mingw53_32/include/QtANGLE -IC:/Qt/5.7/mingw53_32/include/QtXml -IC:/Qt/5.7/mingw53_32/include/QtCore -IC:/Qt/Tools/mingw530_32/lib/gcc/i686-w64-mingw32/5.3.0/include -IC:/Qt/Tools/mingw530_32/lib/gcc/i686-w64-mingw32/5.3.0/include-fixed -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++ -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++/i686-w64-mingw32 -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++/backward src\ui\mainwindow.h -o debug\.moc\moc_mainwindow.cpp
+	C:\Qt\5.7\mingw53_32\bin\moc.exe $(DEFINES) -D__GNUC__ -DWIN32 -IC:/Qt/5.7/mingw53_32/mkspecs/win32-g++ -IC:/Users/Loudon/Desktop/School/Semester6/cs224final -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/libs -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/src -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/src/ui -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/libs/glm -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/libs/glew-1.10.0/include -IC:/Qt/5.7/mingw53_32/include -IC:/Qt/5.7/mingw53_32/include/QtOpenGL -IC:/Qt/5.7/mingw53_32/include/QtWidgets -IC:/Qt/5.7/mingw53_32/include/QtGui -IC:/Qt/5.7/mingw53_32/include/QtANGLE -IC:/Qt/5.7/mingw53_32/include/QtXml -IC:/Qt/5.7/mingw53_32/include/QtCore -IC:/Qt/Tools/mingw530_32/lib/gcc/i686-w64-mingw32/5.3.0/include -IC:/Qt/Tools/mingw530_32/lib/gcc/i686-w64-mingw32/5.3.0/include-fixed -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++ -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++/i686-w64-mingw32 -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++/backward src\ui\mainwindow.h -o debug\.moc\moc_mainwindow.cpp
 
 debug/.moc/moc_view.cpp: libs/glm/glm.hpp \
 		libs/glm/detail/_fixes.hpp \
@@ -627,7 +608,7 @@ debug/.moc/moc_view.cpp: libs/glm/glm.hpp \
 		C:/Qt/5.7/mingw53_32/include/QtCore/qcommandlineoption.h \
 		src/ui/view.h \
 		C:/Qt/5.7/mingw53_32/bin/moc.exe
-	C:\Qt\5.7\mingw53_32\bin\moc.exe $(DEFINES) -D__GNUC__ -DWIN32 -IC:/Qt/5.7/mingw53_32/mkspecs/win32-g++ -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/libs -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/src -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/src/ui -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/libs/glm -IC:/Users/Loudon/Desktop/School/Semester6/cs2240/cs224final/libs/glew-1.10.0/include -IC:/Qt/5.7/mingw53_32/include -IC:/Qt/5.7/mingw53_32/include/QtOpenGL -IC:/Qt/5.7/mingw53_32/include/QtWidgets -IC:/Qt/5.7/mingw53_32/include/QtGui -IC:/Qt/5.7/mingw53_32/include/QtANGLE -IC:/Qt/5.7/mingw53_32/include/QtXml -IC:/Qt/5.7/mingw53_32/include/QtCore -IC:/Qt/Tools/mingw530_32/lib/gcc/i686-w64-mingw32/5.3.0/include -IC:/Qt/Tools/mingw530_32/lib/gcc/i686-w64-mingw32/5.3.0/include-fixed -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++ -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++/i686-w64-mingw32 -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++/backward src\ui\view.h -o debug\.moc\moc_view.cpp
+	C:\Qt\5.7\mingw53_32\bin\moc.exe $(DEFINES) -D__GNUC__ -DWIN32 -IC:/Qt/5.7/mingw53_32/mkspecs/win32-g++ -IC:/Users/Loudon/Desktop/School/Semester6/cs224final -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/libs -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/src -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/src/ui -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/libs/glm -IC:/Users/Loudon/Desktop/School/Semester6/cs224final/libs/glew-1.10.0/include -IC:/Qt/5.7/mingw53_32/include -IC:/Qt/5.7/mingw53_32/include/QtOpenGL -IC:/Qt/5.7/mingw53_32/include/QtWidgets -IC:/Qt/5.7/mingw53_32/include/QtGui -IC:/Qt/5.7/mingw53_32/include/QtANGLE -IC:/Qt/5.7/mingw53_32/include/QtXml -IC:/Qt/5.7/mingw53_32/include/QtCore -IC:/Qt/Tools/mingw530_32/lib/gcc/i686-w64-mingw32/5.3.0/include -IC:/Qt/Tools/mingw530_32/lib/gcc/i686-w64-mingw32/5.3.0/include-fixed -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++ -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++/i686-w64-mingw32 -IC:/Qt/Tools/mingw530_32/i686-w64-mingw32/include/c++/backward src\ui\view.h -o debug\.moc\moc_view.cpp
 
 compiler_moc_source_make_all:
 compiler_moc_source_clean:

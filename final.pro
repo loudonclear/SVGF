@@ -139,7 +139,6 @@ OTHER_FILES += \
 
 RCC_DIR = shaders/
 RESOURCES += \
-    resources.qrc \
     resources.qrc
 
 

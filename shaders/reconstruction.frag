@@ -13,7 +13,8 @@ void main() {
     vec3 indirectColor = texture(indirect, uv).rgb;
     vec3 albedoColor = texture(albedo, uv).rgb;
 
-    vec3 combined = (directColor + indirectColor) * albedoColor;
+    vec3 combined;
+    combined = directColor;
 
     fragColor = vec4(combined.r / (1 + combined.r), combined.g / (1 + combined.g), combined.b / (1 + combined.b), 1.0);
 }

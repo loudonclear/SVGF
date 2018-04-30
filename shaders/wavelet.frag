@@ -10,10 +10,9 @@ uniform sampler2D gNormal;
 
 uniform int level = 0;
 uniform int support = 2;
-uniform float sigmaP = 0.75;
+uniform float sigmaP = 1.0;
 uniform float sigmaN = 128.0;
-uniform float sigmaL = 4.0;
-uniform float minLWeight = 0.2;
+uniform float sigmaL = 25.0;
 
 
 const float epsilon = 0.00001;
@@ -59,7 +58,7 @@ void main() {
                 float qLuminance = luma(qColor);
 
                 vec3 t = pPosition - qPosition;
-                float dist2 = dot(t, t);
+                float dist2 = dot(t, t) + t.z * t.z;
                 float wp = min(exp(-(dist2)/sigmaP), 1.0);
 
                 float wn = pow(max(0.0, dot(pNormal, qNormal)), sigmaN);
@@ -71,7 +70,6 @@ void main() {
                     }
                 }
                 float wl = min(1.0, exp(-abs(pLuminance - qLuminance) / (sigmaL * sqrt(gvl) + epsilon)));
-                wl = max(minLWeight, wl);
 
                 float w = wp * wn * wl;
                 float weight = h[5*(offsety + support) + offsetx + support] * w;

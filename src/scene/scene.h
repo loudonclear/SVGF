@@ -72,7 +72,7 @@ private:
         m_gBufferShader, m_temporalAccumulationShader, m_calcVarianceShader,
         m_copyMomentsShader, m_colorCopyShader,
         m_waveletShader, m_updateHistoryShader,
-        m_reconstructionShader;
+        m_reconstructionShader, m_fxaaShader;
     bool m_pipeline;
 
     // for debug

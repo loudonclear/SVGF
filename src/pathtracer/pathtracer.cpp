@@ -176,8 +176,10 @@ glm::vec3 directLighting(const glm::vec3& hit, const glm::vec3& normal, const Sc
     return intensity;
 }
 
+const int minDepth = 1;
+const int maxDepth = 4;
 RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, int depth, bool show_lights) {
-  if(depth > 10){
+  if (depth >= maxDepth){
     return RenderBuffers::Element::zero();
   }
 
@@ -195,14 +197,14 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
             return elem;
         }
 
-        glm::vec3 hit = i.hit;
-        glm::vec3 normal = glm::normalize((m->inverseNormalTransform * glm::vec4(t->getNormal(i), 0)).xyz());
-        bool inward = glm::dot(normal, r.d) < 0;
-        glm::vec3 sn = inward ? normal : -normal;
+        const glm::vec3 hit = i.hit;
+        const glm::vec3 normal = glm::normalize((m->inverseNormalTransform * glm::vec4(t->getNormal(i), 0)).xyz());
+        const bool inward = glm::dot(normal, r.d) < 0;
+        const glm::vec3 sn = inward ? normal : -normal;
 
 
         if (mat.illum == 2) { // Diffuse
-            const float pdf_rr = std::min(std::max(mat.diffuse[0], std::max(mat.diffuse[1], mat.diffuse[2])), 0.99f);
+            const float pdf_rr = depth < minDepth ? 1.f : std::min(std::max(mat.diffuse[0], std::max(mat.diffuse[1], mat.diffuse[2])), 0.99f);
             auto elem = RenderBuffers::Element::zero();
             elem.m_albedo = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]) / ((float)M_PI);
             if (random() < pdf_rr) {
@@ -217,70 +219,10 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                 elem.m_full = elem.m_albedo * (elem.m_direct + elem.m_indirect);
             }
             return elem;
-        } else if (mat.illum == 3) { // Glossy specular
-            const float pdf_rr = 0.95f;
-            //std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
-
-            if (random() < pdf_rr) {
-                glm::vec3 wi;
-                float pdf;
-                uniformSampleHemisphere(normal, wi, pdf);
-
-                // Phong
-//                const glm::vec3 refl = glm::normalize(-wi + 2.f*normal*glm::dot(normal, wi));
-
-//                const glm::vec3 directIllumination = directLighting(hit, normal, scene);
-
-//                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1, false);
-
-//                glm::vec3 brdf = glm::vec3(mat.specular) * (mat.shininess + 2.f) * pow(glm::dot(refl, -r.d), mat.shininess) / (2.f * M_PI);
-//                CLAMP(brdf[0], 0, 1);
-//                CLAMP(brdf[1], 0, 1);
-//                CLAMP(brdf[2], 0, 1);
-
-//                const glm::vec3 illum = (directIllumination + indirectIllumination) * glm::dot(wi, normal) / (pdf * pdf_rr);
-
-//                l += glm::vec3(brdf[0]*illum[0], brdf[1]*illum[1], brdf[2]*illum[2]);
-
-
-                // Cook Torrance
-                glm::vec3 wo = -r.d;
-                float m = 0.22f;
-                glm::vec3 h = glm::normalize(wo + wi);
-                float widoth = glm::dot(wi, h);
-                float wodoth = glm::dot(wo, h);
-                float ndotwi = glm::dot(wi, normal);
-                float ndotwo = glm::dot(wo, normal);
-                float ndoth = glm::dot(h, normal);
-                float d = 1.f / (M_PI*m*m*pow(ndoth, 4)) * std::exp((ndoth*ndoth - 1)/(m*m*ndoth*ndoth));
-
-                float fterm = std::pow(1 - widoth, 5);
-                glm::vec3 f = glm::vec3(mat.specular[0] + (1 - mat.specular[0])*fterm, mat.specular[1] + (1 - mat.specular[1])*fterm, mat.specular[2] + (1 - mat.specular[2])*fterm);
-                float g = std::min(1.f, std::min(2*ndoth*ndotwo / wodoth, 2*ndoth*ndotwi / wodoth));
-
-                const glm::vec3 directIllumination = directLighting(hit, normal, scene);
-                const glm::vec3 indirectIllumination = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi), scene, depth + 1, false).m_full;
-
-                //pdf included
-                glm::vec3 brdf = ((float) M_PI) * d*g*f / (2.f*ndotwo);
-
-                const glm::vec3 illum = (directIllumination + indirectIllumination) / (pdf_rr);
-                // TODO m_full
-                auto elem = RenderBuffers::Element::zero();
-                elem.m_albedo = brdf;
-                elem.m_direct = directIllumination / pdf_rr;
-                elem.m_indirect = indirectIllumination / pdf_rr;
-                elem.m_full = glm::vec3(brdf[0]*illum[0], brdf[1]*illum[1], brdf[2]*illum[2]);
-                return elem;
-            }
-
         } else if (mat.illum == 5) { // Perfect specular
             auto elem = RenderBuffers::Element::zero();
-            // TODO colored mirrors or nah?
-            // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1],
-            // mat.specular[2]);
             elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
-            const float pdf_rr = std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
+            const float pdf_rr = depth < minDepth ? 1.f : std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
             if (random() < pdf_rr) {
               const glm::vec3 refl =
                   glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
@@ -291,11 +233,9 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
 
         } else if (mat.illum == 7) { // Refraction
             auto elem = RenderBuffers::Element::zero();
-            // TODO colored mirrors or nah?
-            // elem.m_albedo = glm::vec3(mat.specular[0], mat.specular[1], mat.specular[2]);
             elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
 
-            const float pdf_rr = 0.99f;
+            const float pdf_rr = depth < minDepth ? 1.f : 0.95f;
             if (random() < pdf_rr) {
                 const glm::vec3 refl = glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
 

@@ -82,6 +82,8 @@ void Scene::init_shaders() {
       Shader::from_files("quad.vert", "colorcopy.frag"));
   m_reconstructionShader = std::make_unique<Shader>(
       Shader::from_files("quad.vert", "reconstruction.frag"));
+  m_fxaaShader = std::make_unique<Shader>(
+      Shader::from_files("quad.vert", "fxaa.frag"));
 }
 
 std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
@@ -125,6 +127,7 @@ RenderBuffers Scene::trace(bool save) {
     std::cout << "Scene took " << duration << " seconds to trace." << std::endl;
     if (save) {
       save_render_buffers(buffers);
+
     }
     return buffers;
 }
@@ -253,6 +256,11 @@ void Scene::render() {
         // INPUT: combined light and primary albedo
         // OUTPUT: rendered image
 
+        m_fxaaShader->bind();
+        m_fxaaShader->setTexture("color", m_colorVarianceBuffer1->color_variance_texture());
+        renderQuad();
+        m_fxaaShader->unbind();
+
         high_resolution_clock::time_point t3 = high_resolution_clock::now();
         float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
         std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
@@ -367,7 +375,7 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
     }
 
     // Store 5th level filtered color
-    if (iterations % 2 == 0) {
+    if (iterations % 2 == 1) {
         this->copy_texture_color(m_colorVarianceBuffer2->color_variance_texture(), rb);
     } else {
         this->copy_texture_color(m_colorVarianceBuffer1->color_variance_texture(), rb);
@@ -376,14 +384,14 @@ void Scene::waveletPass(ResultBuffer& rb, const Texture2D& texture, ColorHistory
 
 void Scene::recombineColor(const ColorBuffer &cb, const ResultBuffer &direct,
                            const ResultBuffer &indirect) {
-     // output to screen
-     Buffer::unbind();
+     m_colorVarianceBuffer1->bind();
      m_reconstructionShader->bind();
      m_reconstructionShader->setTexture("direct", direct.color_texture());
      m_reconstructionShader->setTexture("indirect", indirect.color_texture());
      m_reconstructionShader->setTexture("albedo", cb.getAlbedoTexture());
      renderQuad();
      m_reconstructionShader->unbind();
+     m_colorVarianceBuffer1->unbind();
 }
 
 void Scene::setBVH(const BVH &bvh)

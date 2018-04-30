@@ -15,5 +15,6 @@
         <file>shaders/test.vert</file>
         <file>shaders/update_history.frag</file>
         <file>shaders/wavelet.frag</file>
+        <file>shaders/fxaa.frag</file>
     </qresource>
 </RCC>

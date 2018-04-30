@@ -97,6 +97,12 @@ void Mesh::render(std::shared_ptr<CS123::GL::Shader> &shader, const bool pipelin
             shader->setUniform("shininess", mat.shininess);
         } else {
             shader->setUniform("matID", static_cast<float>(m_id));
+
+            glm::vec3 albedo = glm::vec3(1.f);
+            if (mat.illum == 2) {
+                albedo = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]) / ((float)M_PI);
+            }
+            shader->setUniform("albedo", albedo);
         }
 
         glBindVertexArray(m_VAOs.at(i));
