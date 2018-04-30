@@ -19,6 +19,7 @@ public:
   int height() const;
 
   void blit_to(GLenum in_attachment, Buffer& out_buff, GLenum out_attachment) const;
+  void blit_to(Buffer& out_buff) const;
   // Blits buffer to the default display buffer
   void display(GLenum attachment = GL_COLOR_ATTACHMENT0);
 

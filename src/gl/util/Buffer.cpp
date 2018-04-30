@@ -87,6 +87,10 @@ void Buffer::blit_to(GLenum in_attachment, Buffer& out_buff, GLenum out_attachme
   Buffer::unbind();
 }
 
+void Buffer::blit_to(Buffer& out_buff) const {
+  Buffer::blit_to(GL_COLOR_ATTACHMENT0, out_buff, GL_COLOR_ATTACHMENT0);
+}
+
 Texture2D Buffer::makeTexture(GLint internalFormat, GLenum format,
                               GLenum type, void *data) {
   TextureParameters tex_params{TextureParameters::FILTER_METHOD::NEAREST,

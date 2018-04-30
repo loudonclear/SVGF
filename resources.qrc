@@ -6,6 +6,7 @@
         <file>shaders/draw_alpha.frag</file>
         <file>shaders/gbuffer.frag</file>
         <file>shaders/gbuffer.vert</file>
+        <file>shaders/motion_vectors.frag</file>
         <file>shaders/quad.vert</file>
         <file>shaders/reconstruction.frag</file>
         <file>shaders/shader.frag</file>
