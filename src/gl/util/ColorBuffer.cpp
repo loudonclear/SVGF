@@ -7,9 +7,9 @@ using namespace CS123::GL;
 
 ColorBuffer::ColorBuffer(int width, int height, RenderBuffers &buffers) :
   Buffer(width, height),
-  m_direct(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 0, buffers.m_direct.get())),
-  m_indirect(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 1, buffers.m_indirect.get())),
-  m_albedo(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 2, buffers.m_albedo.get()))
+  m_direct(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 0, buffers.l(RenderBuffers::DIRECT).get())),
+  m_indirect(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 1, buffers.l(RenderBuffers::INDIRECT).get())),
+  m_albedo(makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 2, buffers.l(RenderBuffers::ALBEDO).get()))
 {
     bind();
 

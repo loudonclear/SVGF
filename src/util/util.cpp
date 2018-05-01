@@ -11,51 +11,72 @@
 std::unique_ptr<glm::vec3[]> RenderBuffers::recombined() const {
   auto out = std::make_unique<glm::vec3[]>(this->size());
   for (std::size_t i = 0; i < this->size(); ++i) {
-    out[i] = (m_direct[i] + m_indirect[i]) * m_albedo[i];
+    out[i] = (l(DIRECT)[i] + l(INDIRECT)[i]) * l(ALBEDO)[i];
   }
   return out;
 }
 
+void RenderBuffers::save(const std::string &directory,
+                   const std::string &name) const {
+  std::string layer_names[NUM_LAYERS]  = {"albedo",      "direct",  "indirect",
+                                         "position_id", "normals", "full"};
+
+  QImage image(m_width, m_height, QImage::Format_RGB32);
+  QRgb *data = reinterpret_cast<QRgb *>(image.bits());
+
+  std::string prefix = directory + "/" + name + "_";
+  QString filename;
+
+  for (std::size_t i = 0; i < RenderBuffers::NUM_LAYERS; ++i) {
+    filename = QString::fromStdString(prefix + layer_names[i] + ".png");
+    toneMap(data, l(ALBEDO).get(), this->size());
+    save_image(image, filename);
+  }
+
+  auto combined = this->recombined();
+  filename = QString::fromStdString(prefix + "combined" + ".png");
+  toneMap(data, combined.get(), this->size());
+  save_image(image, filename);
+}
+
+std::unique_ptr<glm::vec4[]> RenderBuffers::interleave_pos_id() const {
+  auto pos_id = std::make_unique<glm::vec4[]>(this->size());
+  for(std::size_t i=0; i<this->size(); ++i){
+    pos_id[i] = glm::vec4(l(POSITION)[i], l(OBJ_ID)[i][0]);
+  }
+  return pos_id;
+}
 
 RenderBuffers::Element& RenderBuffers::Element::operator=(const RenderBuffers::Slice& sl){
-  m_albedo = sl.albedo();
-  m_direct = sl.direct();
-  m_indirect = sl.indirect();
-  m_full = sl.full();
+for(std::size_t i = 0; i < NUM_LAYERS; ++i){
+    l(i) = sl[i];
+  }
   return *this;
 }
 
 RenderBuffers::Element &RenderBuffers::Element::operator+=(const RenderBuffers::Element &e) {
-  m_albedo += e.m_albedo;
-  m_direct += e.m_direct;
-  m_indirect += e.m_indirect;
-  m_full += e.m_full;
+for(std::size_t i = 0; i < NUM_LAYERS; ++i){
+    l(i) += e[i];
+  }
   return *this;
 }
 
 RenderBuffers::Element &RenderBuffers::Element::operator/=(float f) {
-  m_albedo /= f;
-  m_direct /= f;
-  m_indirect /= f;
-  m_full /= f;
+for(std::size_t i = 0; i < NUM_LAYERS; ++i){
+    l(i) /= f;
+  }
   return *this;
 }
 
 RenderBuffers::Element &RenderBuffers::Element::operator*=(float f) {
-  m_albedo *= f;
-  m_direct *= f;
-  m_indirect *= f;
-  m_full *= f;
+  for(std::size_t i = 0; i < NUM_LAYERS; ++i){
+    l(i) *= f;
+  }
   return *this;
 }
 
 bool RenderBuffers::Element::operator==(const RenderBuffers::Element &e) const {
-  bool b = true;
-  b &= (m_albedo == e.m_albedo);
-  b &= (m_direct == e.m_direct);
-  b &= (m_indirect == e.m_indirect);
-  b &= (m_full == e.m_full);
-  return b;
+  return m_layers == e.m_layers;
 }
 
 bool RenderBuffers::Element::operator!=(const RenderBuffers::Element& e) const {
@@ -64,11 +85,15 @@ bool RenderBuffers::Element::operator!=(const RenderBuffers::Element& e) const {
 
 // returns true if ANY elements are NaN
 bool RenderBuffers::Element::isnan() const {
-  return glm::any(glm::isnan(m_albedo + m_direct + m_indirect + m_full));
+  bool out = false;
+  for(const auto & l : m_layers){
+    out |= glm::any(glm::isnan(l));
+  }
+  return out;
 }
 
 RenderBuffers::Element RenderBuffers::Element::zero() {
-  return {glm::vec3(0.0), glm::vec3(0.0), glm::vec3(0.0), glm::vec3(0.0)};
+  return {{glm::vec3(0.0f)}};
 }
 
 
@@ -91,36 +116,6 @@ void toneMapSimple(QRgb *imageData, glm::vec3 *intensityValues,
   // o n e l i n e r
   std::transform(intensityValues, std::next(intensityValues, size), imageData,
                  vec3ToQRgb);
-}
-
-void save_render_buffers(const RenderBuffers &buffs, std::string directory,
-                         std::string name) {
-  QImage image(buffs.m_width, buffs.m_height, QImage::Format_RGB32);
-  QRgb *data = reinterpret_cast<QRgb *>(image.bits());
-
-  std::string prefix = directory + "/" + name + "_";
-  QString filename;
-
-  filename = QString::fromStdString(prefix + "albedo" + ".png");
-  toneMap(data, buffs.m_albedo.get(), buffs.size());
-  save_image(image, filename);
-
-  filename = QString::fromStdString(prefix + "direct" + ".png");
-  toneMap(data, buffs.m_direct.get(), buffs.size());
-  save_image(image, filename);
-
-  filename = QString::fromStdString(prefix +  "indirect" + ".png");
-  toneMap(data, buffs.m_indirect.get(), buffs.size());
-  save_image(image, filename);
-
-  filename = QString::fromStdString(prefix + "full" + ".png");
-  toneMap(data, buffs.m_full.get(), buffs.size());
-  save_image(image, filename);
-
-  auto combined = buffs.recombined();
-  filename = QString::fromStdString(prefix + "combined" + ".png");
-  toneMap(data, combined.get(), buffs.size());
-  save_image(image, filename);
 }
 
 bool save_image(const QImage &img, const QString &filename) {

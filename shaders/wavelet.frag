@@ -27,6 +27,10 @@ float luma(vec3 c){
     return dot(c, vec3(0.2126, 0.7152, 0.0722));
 }
 
+bool eps_equal(float a, float b){
+  return round(a) == round(b);
+}
+
 void main() {
 
     vec3 pPosition = texture(gPositionMeshID, uv).rgb;
@@ -49,7 +53,7 @@ void main() {
             vec2 loc = uv + vec2(step * offsetx * texelSize.x, step * offsety * texelSize.y);
             float qMeshID = texture(gPositionMeshID, loc).a;
 
-            if (pMeshID == qMeshID) {
+            if (eps_equal(pMeshID, qMeshID)) {
                 vec3 qPosition = texture(gPositionMeshID, loc).rgb;
                 vec3 qNormal = texture(gNormal, loc).rgb;
 

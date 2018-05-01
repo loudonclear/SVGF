@@ -83,7 +83,6 @@ private:
     std::vector<CS123SceneLightData> m_lights;
 
     // filtering params
-    unsigned int samples;
     float m_integration_alpha = 0.2;
 
     // convenience function for loading all the shaders.

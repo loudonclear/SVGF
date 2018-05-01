@@ -91,11 +91,10 @@ void PathTracer::render(const Scene& scene, RenderBuffers& buffs, glm::mat4x4 &i
 
 RenderBuffers::Element PathTracer::tracePixel(int x, int y, const Scene& scene, const glm::mat4x4 &invViewMatrix) {
     glm::vec3 p(0, 0, 0);
+    glm::vec3 d((2.f * (x) / m_width) - 1, 1 - (2.f * (y) / m_height), -1);
+    d = glm::normalize(d);
     auto res = RenderBuffers::Element::zero();
     for (unsigned int s = 0; s < m_numSamples; s++) {
-        glm::vec3 d((2.f * (x) / m_width) - 1, 1 - (2.f * (y) / m_height), -1);
-        d = glm::normalize(d);
-
         res += traceRay(Ray(Ray(p, d).transform(invViewMatrix)), scene, 0);
     }
     res /= m_numSamples;
@@ -179,66 +178,62 @@ glm::vec3 directLighting(const glm::vec3& hit, const glm::vec3& normal, const Sc
 const int minDepth = 1;
 const int maxDepth = 4;
 RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, int depth, bool show_lights) {
-  if (depth >= maxDepth){
-    return RenderBuffers::Element::zero();
-  }
-
+    if (depth >= maxDepth){
+        return RenderBuffers::Element::zero();
+    }
     IntersectionInfo i;
     if(scene.getBVH().getIntersection(r, &i, false)) {
+        auto elem = RenderBuffers::Element::zero();
+
         const Mesh *m = static_cast<const Mesh *>(i.object); // Get the mesh that was intersected
         const Triangle *t = static_cast<const Triangle *>(i.data); // Get the triangle in the mesh that was intersected
         const tinyobj::material_t& mat = m->getMaterial(t->getIndex()); // Get the material of the triangle from the mesh
-
-        if (m->isLight && show_lights) {
-            auto elem = RenderBuffers::Element::zero();
-            elem.m_albedo = glm::vec3(mat.emission[0], mat.emission[1], mat.emission[2]);
-            elem.m_direct = glm::vec3(1.0f, 1.0f, 1.0f);
-            elem.m_full = elem.m_albedo;
-            return elem;
-        }
 
         const glm::vec3 hit = i.hit;
         const glm::vec3 normal = glm::normalize((m->inverseNormalTransform * glm::vec4(t->getNormal(i), 0)).xyz());
         const bool inward = glm::dot(normal, r.d) < 0;
         const glm::vec3 sn = inward ? normal : -normal;
+        elem[RenderBuffers::POSITION] = hit;
+        elem[RenderBuffers::NORMALS] = sn;
+        elem[RenderBuffers::OBJ_ID] = glm::vec3(m->id());
 
-
+        if (m->isLight && show_lights) {
+            elem[RenderBuffers::ALBEDO] = glm::vec3(mat.emission[0], mat.emission[1], mat.emission[2]);
+            elem[RenderBuffers::DIRECT] = glm::vec3(1.0f, 1.0f, 1.0f);
+            elem[RenderBuffers::FULL] = elem[RenderBuffers::ALBEDO];
+            return elem;
+        }
         if (mat.illum == 2) { // Diffuse
             const float pdf_rr = depth < minDepth ? 1.f : std::min(std::max(mat.diffuse[0], std::max(mat.diffuse[1], mat.diffuse[2])), 0.99f);
-            auto elem = RenderBuffers::Element::zero();
-            elem.m_albedo = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]) / ((float)M_PI);
+            elem[RenderBuffers::ALBEDO] = glm::vec3(mat.diffuse[0], mat.diffuse[1], mat.diffuse[2]) / ((float)M_PI);
             if (random() < pdf_rr) {
                 glm::vec3 wi;
                 float pdf;
                 cosineSampleHemisphere(normal, wi, pdf);
 
                 const float illum_scale = glm::dot(wi, normal) / (pdf * pdf_rr);
-                elem.m_direct = directLighting(hit, normal, scene) * illum_scale;
-                elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi),
-                                           scene, depth + 1, false).m_full * illum_scale;
-                elem.m_full = elem.m_albedo * (elem.m_direct + elem.m_indirect);
+                elem[RenderBuffers::DIRECT] = directLighting(hit, normal, scene) * illum_scale;
+                elem[RenderBuffers::INDIRECT] = traceRay(Ray(hit + FLOAT_EPSILON * wi, wi),
+                                                         scene, depth + 1, false)[RenderBuffers::FULL] * illum_scale;
+                elem[RenderBuffers::FULL] = elem[RenderBuffers::ALBEDO] * (elem[RenderBuffers::DIRECT] + elem[RenderBuffers::INDIRECT]);
             }
             return elem;
         } else if (mat.illum == 5) { // Perfect specular
-            auto elem = RenderBuffers::Element::zero();
-            elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
+            elem[RenderBuffers::ALBEDO] = glm::vec3(1.0f, 1.0f, 1.0f);
             const float pdf_rr = depth < minDepth ? 1.f : std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
             if (random() < pdf_rr) {
               const glm::vec3 refl =
                   glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
-              elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true).m_full / pdf_rr;
-              elem.m_full = elem.m_albedo * elem.m_indirect;
+              elem[RenderBuffers::INDIRECT] = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true)[RenderBuffers::FULL] / pdf_rr;
+              elem[RenderBuffers::FULL] = elem[RenderBuffers::ALBEDO] * elem[RenderBuffers::INDIRECT];
             }
             return elem;
 
         } else if (mat.illum == 7) { // Refraction
-            auto elem = RenderBuffers::Element::zero();
-            elem.m_albedo = glm::vec3(1.0f, 1.0f, 1.0f);
-
+            elem[RenderBuffers::ALBEDO] = glm::vec3(1.0f, 1.0f, 1.0f);
             const float pdf_rr = depth < minDepth ? 1.f : 0.95f;
             if (random() < pdf_rr) {
                 const glm::vec3 refl = glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
-
                 const float ni = 1.f;
                 const float nt = mat.ior;
                 const float ratio = inward ? ni / nt : nt / ni;
@@ -248,7 +243,7 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
 
                 // TODO m_full
                 if (radicand < FLOAT_EPSILON) {
-                  elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true).m_full / pdf_rr;
+                  elem[RenderBuffers::INDIRECT] = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true)[RenderBuffers::FULL] / pdf_rr;
                 } else {
                     glm::vec3 refr;
                     if (inward) {
@@ -256,16 +251,15 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
                     } else {
                         refr = r.d * ratio + normal * (costheta * ratio + glm::sqrt(radicand));
                     }
-
                     const float R0 = (nt - ni) * (nt - ni) / ((nt + ni) * (nt + ni));
                     const float Rtheta = R0 + (1.f - R0) * std::pow(1.f - (inward ? -costheta : glm::dot(refr, normal)), 5);
                     if (random() < Rtheta) {
-                      elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true).m_full / pdf_rr;
+                      elem[RenderBuffers::INDIRECT] = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true)[RenderBuffers::FULL] / pdf_rr;
                     } else {
-                      elem.m_indirect = traceRay(Ray(hit + FLOAT_EPSILON * refr, refr), scene, depth + 1, true).m_full / pdf_rr;
+                      elem[RenderBuffers::INDIRECT] = traceRay(Ray(hit + FLOAT_EPSILON * refr, refr), scene, depth + 1, true)[RenderBuffers::FULL] / pdf_rr;
                     }
                 }
-                elem.m_full = elem.m_albedo * elem.m_indirect;
+                elem[RenderBuffers::FULL] = elem[RenderBuffers::ALBEDO] * elem[RenderBuffers::INDIRECT];
             }
             return elem;
         }

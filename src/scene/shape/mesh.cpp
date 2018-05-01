@@ -202,6 +202,11 @@ const CS123SceneMaterial Mesh::getMaterialForWholeObject() const
     return _wholeObjectMaterial;
 }
 
+
+const int& Mesh::id() const{
+  return m_id;
+}
+
 void Mesh::calculateMeshStats()
 {
     _bbox.setP(_vertices[0]);

@@ -49,6 +49,8 @@ public:
     virtual void setTransform(glm::mat4x4 transform) override;
     const CS123SceneMaterial getMaterialForWholeObject() const;
 
+    const int& id() const;
+
 private:
     // Properties fromt the scene file
     CS123SceneMaterial _wholeObjectMaterial;

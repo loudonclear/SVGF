@@ -5,10 +5,11 @@
 
 using namespace CS123::GL;
 
-SVGFGBuffer::SVGFGBuffer(int width, int height)
+SVGFGBuffer::
+SVGFGBuffer(int width, int height)
     : Buffer(width, height),
-      gPositionMeshID(Buffer::makeTextureAndAttach(GL_RGBA16F, GL_RGBA, GL_FLOAT, 0)),
-      gNormal(Buffer::makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 1))
+      gPositionMeshID(Buffer::makeTextureAndAttach(GL_RGBA16F, GL_RGBA, GL_FLOAT, 0, 0)),
+      gNormal(Buffer::makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 1, 0))
 
 {
   bind();
@@ -33,3 +34,8 @@ SVGFGBuffer::SVGFGBuffer(int width, int height)
 const Texture2D &SVGFGBuffer::position_mesh_id_texture() const { return gPositionMeshID; }
 
 const Texture2D &SVGFGBuffer::normal_texture() const { return gNormal; }
+
+void SVGFGBuffer::set_textures(const RenderBuffers& buffers) {
+  gPositionMeshID = Buffer::makeTextureAndAttach(GL_RGBA16F, GL_RGBA, GL_FLOAT, 0, buffers.interleave_pos_id().get());
+  gNormal = Buffer::makeTextureAndAttach(GL_RGB16F, GL_RGB, GL_FLOAT, 1, buffers.l(RenderBuffers::NORMALS).get());
+}

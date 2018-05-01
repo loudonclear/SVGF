@@ -30,7 +30,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace CS123::GL;
 
-Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height), m_pipeline(false), samples(samples)
+Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height), m_pipeline(false)
 {
     init_shaders();
     m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
@@ -128,8 +128,7 @@ RenderBuffers Scene::trace(bool save) {
     float duration = duration_cast<milliseconds>( t2 - t1 ).count() / 1000.0;
     std::cout << "Scene took " << duration << " seconds to trace." << std::endl;
     if (save) {
-      save_render_buffers(buffers);
-
+      buffers.save();
     }
     return buffers;
 }
@@ -170,7 +169,7 @@ void Scene::resize(int w, int h) {
     cam.setAspectRatio(static_cast<float>(w) / static_cast<float>(h));
     this->setCamera(cam);
 
-    m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
+    m_pathTracer = std::make_shared<PathTracer>(width, height, m_pathTracer->numSamples());
     m_SVGFGBuffer = std::make_shared<SVGFGBuffer>(width, height);
     m_SVGFGBuffer_prev = std::make_shared<SVGFGBuffer>(width, height);
     m_colorVarianceBuffer1 = std::make_shared<ColorVarianceBuffer>(width, height);
@@ -189,27 +188,24 @@ void Scene::render() {
         // INPUT: scene
         // OUTPUT: depth, normals, mesh/mat ids, motion vectors
 
-        m_SVGFGBuffer->bind();
-        glClearColor(0.0, 0.0, 0.0, -1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glClearColor(0.0, 0.0, 0.0, 0);
+        // TODO OpenGL's G-Buffer did not match up with pathracing data
+        // m_SVGFGBuffer->bind();
+        // glClearColor(0.0, 0.0, 0.0, -1);
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // glClearColor(0.0, 0.0, 0.0, 0);
 
-        m_gBufferShader->bind();
-        m_gBufferShader->setUniform("p", m_camera.getProjectionMatrix());
-        m_gBufferShader->setUniform("v", m_camera.getViewMatrix());
+        // m_gBufferShader->bind();
+        // m_gBufferShader->setUniform("p", m_camera.getProjectionMatrix());
+        // m_gBufferShader->setUniform("v", m_camera.getViewMatrix());
 
-        for (Object *obj : *_objects) {
-            m_gBufferShader->setUniform("m", obj->transform);
-            obj->render(m_gBufferShader, m_pipeline);
-        }
+        // for (Object *obj : *_objects) {
+        //     m_gBufferShader->setUniform("m", obj->transform);
+        //     obj->render(m_gBufferShader, m_pipeline);
+        // }
 
-        m_gBufferShader->unbind();
-        m_SVGFGBuffer->unbind();
+        // m_gBufferShader->unbind();
+        // m_SVGFGBuffer->unbind();
 
-        // Calc motion vectors
-        // This stores texture coordinates into the prevous screen as (u_prev, v_prev, valid) (RGB)
-        ResultBuffer motion_vectors(width, height);
-        calc_motion_vectors(motion_vectors);
 
         // Pathtracing
         // INPUT: scene
@@ -218,6 +214,12 @@ void Scene::render() {
         auto buffers = this->trace();
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         ColorBuffer cb = ColorBuffer(width, height, buffers);
+        m_SVGFGBuffer->set_textures(buffers);
+
+        // Calc motion vectors
+        // This stores texture coordinates into the prevous screen as (u_prev, v_prev, valid) (RGB)
+        ResultBuffer motion_vectors(width, height);
+        calc_motion_vectors(motion_vectors);
 
         // Temporal accumulation shader
         // INPUT: color, motion vectors, normals, depth, mesh/mat ids, color history, moments history, prev normals, prev depth, prev mesh/mat ids
@@ -258,12 +260,13 @@ void Scene::render() {
         // TODO: Post-processing (tone mapping, temporal antialiasing)
         // INPUT: combined light and primary albedo
         // OUTPUT: rendered image
-        // this->draw_alpha(motion_vectors.color_texture());
 
         m_fxaaShader->bind();
         m_fxaaShader->setTexture("color", m_colorVarianceBuffer1->color_variance_texture());
         renderQuad();
         m_fxaaShader->unbind();
+
+        m_colorVarianceBuffer1->display();
 
         high_resolution_clock::time_point t3 = high_resolution_clock::now();
         float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
