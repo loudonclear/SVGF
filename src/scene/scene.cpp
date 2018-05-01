@@ -257,16 +257,14 @@ void Scene::render() {
         // OUTPUT: combined light and primary albedo
         this->recombineColor(cb, direct, indirect);
 
-        // TODO: Post-processing (tone mapping, temporal antialiasing)
-        // INPUT: combined light and primary albedo
-        // OUTPUT: rendered image
+        // // TODO: Post-processing (tone mapping, temporal antialiasing)
+        // // INPUT: combined light and primary albedo
+        // // OUTPUT: rendered image
 
         m_fxaaShader->bind();
         m_fxaaShader->setTexture("color", m_colorVarianceBuffer1->color_variance_texture());
         renderQuad();
         m_fxaaShader->unbind();
-
-        m_colorVarianceBuffer1->display();
 
         high_resolution_clock::time_point t3 = high_resolution_clock::now();
         float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
@@ -328,9 +326,9 @@ void Scene::calc_motion_vectors(ResultBuffer& out) const {
   m_motionVectorsShader->setUniform("v_prev", m_camera_prev.getViewMatrix());
   m_motionVectorsShader->setUniform("p_prev", m_camera_prev.getProjectionMatrix());
   m_motionVectorsShader->setTexture("pos_id_prev", m_SVGFGBuffer_prev->position_mesh_id_texture());
-  // m_motionVectorsShader->setTexture("normals_prev", m_SVGFGBuffer_prev->normal_texture());
+  m_motionVectorsShader->setTexture("normals_prev", m_SVGFGBuffer_prev->normal_texture());
   m_motionVectorsShader->setTexture("pos_id", m_SVGFGBuffer->position_mesh_id_texture());
-  // m_motionVectorsShader->setTexture("normals", m_SVGFGBuffer->normal_texture());
+  m_motionVectorsShader->setTexture("normals", m_SVGFGBuffer->normal_texture());
   renderQuad();
   m_motionVectorsShader->unbind();
   out.unbind();
