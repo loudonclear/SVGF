@@ -330,9 +330,9 @@ void Scene::calc_motion_vectors(ResultBuffer& out) const {
   m_motionVectorsShader->setUniform("v_prev", m_camera_prev.getViewMatrix());
   m_motionVectorsShader->setUniform("p_prev", m_camera_prev.getProjectionMatrix());
   m_motionVectorsShader->setTexture("pos_id_prev", m_SVGFGBuffer_prev->position_mesh_id_texture());
-  // m_motionVectorsShader->setTexture("normals_prev", m_SVGFGBuffer_prev->normal_texture());
+  m_motionVectorsShader->setTexture("normals_prev", m_SVGFGBuffer_prev->normal_texture());
   m_motionVectorsShader->setTexture("pos_id", m_SVGFGBuffer->position_mesh_id_texture());
-  // m_motionVectorsShader->setTexture("normals", m_SVGFGBuffer->normal_texture());
+  m_motionVectorsShader->setTexture("normals", m_SVGFGBuffer->normal_texture());
   renderQuad();
   m_motionVectorsShader->unbind();
   out.unbind();
