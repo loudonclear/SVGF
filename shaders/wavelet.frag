@@ -12,7 +12,7 @@ uniform int level = 0;
 uniform int support = 2;
 uniform float sigmaP = 1.0;
 uniform float sigmaN = 128.0;
-uniform float sigmaL = 25.0;
+uniform float sigmaL = 4.0;
 
 
 const float epsilon = 0.00001;

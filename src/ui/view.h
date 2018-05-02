@@ -21,6 +21,9 @@ class View : public QGLWidget {
 public:
     View(QWidget *parent);
 
+    void change_settings(int renderMode, int numSamples, int waveletIterations, float alpha, float sigmaP, float sigmaN, float sigmaL);
+    void loadScene(QString file);
+
 private:
     QCommandLineParser m_cli_parser;
     QTime m_time;
@@ -46,8 +49,6 @@ private:
     void keyPressEvent(QKeyEvent *event);
     void keyReleaseEvent(QKeyEvent *event);
 
-public slots:
-    void fileOpen();
 
 private slots:
     void tick();

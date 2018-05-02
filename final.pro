@@ -73,7 +73,8 @@ SOURCES += \
     src/ui/view.cpp \
     src/ui/viewformat.cpp \
     src/util/CS123XmlSceneParser.cpp \
-    src/util/util.cpp
+    src/util/util.cpp \
+    src/gl/util/DisplayBuffer.cpp
 
 
 HEADERS += \
@@ -123,7 +124,8 @@ HEADERS += \
     src/util/CS123SceneData.h \
     src/util/CS123XmlSceneParser.h \
     src/util/tiny_obj_loader.h \
-    src/util/util.h
+    src/util/util.h \
+    src/gl/util/DisplayBuffer.h
 
 
 

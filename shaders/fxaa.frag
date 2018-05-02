@@ -6,7 +6,7 @@ out vec4 fragColor;
 
 uniform sampler2D color;
 
-uniform float lumaThreshold = 0.85;
+uniform float lumaThreshold = 0.5;
 uniform float mulReduce = 1.0 / 8.0;
 uniform float minReduce = 1.0 / 128.0;
 uniform float maxSpan = 8.0;
@@ -40,9 +40,9 @@ void main() {
 
     // Gradient.
     vec2 samplingDirection = vec2((lumadl + lumadr) - (lumaul + lumaur), (lumaul + lumadl) - (lumaur + lumadr));
-    float samplingDirectionReduce = max((lumaul + lumaur + lumadl + lumadr) * 0.25 * mulReduce, minReduce);
-    float minSamplingDirectionFactor = 1.0 / (min(abs(samplingDirection.x), abs(samplingDirection.y)) + samplingDirectionReduce);
-    samplingDirection = clamp(samplingDirection * minSamplingDirectionFactor, vec2(-maxSpan, -maxSpan), vec2(maxSpan, maxSpan)) * texelSize;
+    float dirReduce = max((lumaul + lumaur + lumadl + lumadr) * 0.25 * mulReduce, minReduce);
+    float invDirAdjust = 1.0 / (min(abs(samplingDirection.x), abs(samplingDirection.y)) + dirReduce);
+    samplingDirection = clamp(samplingDirection * invDirAdjust, vec2(-maxSpan, -maxSpan), vec2(maxSpan, maxSpan)) * texelSize;
 
 
     vec3 innerNeg = texture(color, uv + samplingDirection * (1.0/3.0 - 0.5)).rgb;

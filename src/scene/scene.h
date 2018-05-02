@@ -5,6 +5,7 @@
 
 #include "BVH/BVH.h"
 #include "gl/util/ColorBuffer.h"
+#include "gl/util/DisplayBuffer.h"
 #include "gl/util/ColorHistoryBuffer.h"
 #include "gl/util/ColorVarianceBuffer.h"
 #include "gl/util/ResultBuffer.h"
@@ -34,6 +35,7 @@ public:
 
     RenderBuffers trace(bool save = false);
     void resize(int w, int h);
+    void change_settings(int renderMode, int numSamples, int waveletIterations, float alpha, float sigmaP, float sigmaN, float sigmaL);
     void render();
     bool& pipeline();
     const bool& pipeline() const;
@@ -53,11 +55,12 @@ public:
     float& integration_alpha() {return m_integration_alpha; }
     const float& integration_alpha() const {return m_integration_alpha; }
 
-    //const std::vector<CS123SceneLightData>& getLights();
     std::vector<Object *> *lights;
 
 private:
     int width, height;
+    int samples;
+    int wavelet_iterations;
 
     BVH *m_bvh;
     std::vector<Object *> *_objects;
@@ -68,6 +71,7 @@ private:
     std::shared_ptr<SVGFGBuffer> m_SVGFGBuffer, m_SVGFGBuffer_prev;
     std::shared_ptr<ColorVarianceBuffer> m_colorVarianceBuffer1, m_colorVarianceBuffer2;
     std::unique_ptr<ColorHistoryBuffer> m_directHistory, m_indirectHistory;
+    std::unique_ptr<DisplayBuffer> m_displayBuffer;
 
     std::shared_ptr<CS123::GL::Shader> m_testShader;
     std::shared_ptr<CS123::GL::Shader> m_calcVarianceShader, m_colorCopyShader,
@@ -89,7 +93,6 @@ private:
     void init_shaders();
 
     /* Code for Running Shaders  */
-    // void copy_texture_color(const CS123::GL::Texture2D& tex, Buffer& output_buff);
     void draw_alpha(const CS123::GL::Texture2D& tex);
     void flip_rgba_texture(const CS123::GL::Texture2D& tex, Buffer& output_buff);
     // Calculate motion vectors from the previous frame.

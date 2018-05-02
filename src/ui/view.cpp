@@ -81,6 +81,12 @@ void View::initializeGL() {
     }
 }
 
+void View::change_settings(int renderMode, int numSamples, int waveletIterations, float alpha, float sigmaP, float sigmaN, float sigmaL) {
+    if (m_scene) {
+        m_scene->change_settings(renderMode, numSamples, waveletIterations, alpha, sigmaP, sigmaN, sigmaL);
+    }
+}
+
 void View::resizeGL(int w, int h) {
     glViewport(0, 0, w, h);
 
@@ -182,16 +188,9 @@ void View::mouseMoveEvent(QMouseEvent *event) {
     }
 }
 
-
-/* File dialog */
-void View::fileOpen() {
-  QString file =
-      QFileDialog::getOpenFileName(this, "Open File", "./res/scenes/");
-  if (!file.isNull()) {
+void View::loadScene(QString file) {
     m_scene = Scene::load(file, width(), height());
     if (!m_scene) {
-      std::cerr << "Error parsing scene file " << file.toStdString()
-                << std::endl;
+        std::cerr << "Error parsing scene file " << file.toStdString() << std::endl;
     }
-  }
 }

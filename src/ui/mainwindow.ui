@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>512</width>
-    <height>512</height>
+    <width>1024</width>
+    <height>650</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,7 +37,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1000</width>
+     <width>1024</width>
      <height>26</height>
     </rect>
    </property>
@@ -67,7 +67,7 @@
        <x>10</x>
        <y>20</y>
        <width>171</width>
-       <height>91</height>
+       <height>101</height>
       </rect>
      </property>
      <property name="title">
@@ -117,7 +117,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>190</y>
+       <y>300</y>
        <width>131</width>
        <height>21</height>
       </rect>
@@ -136,7 +136,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>170</y>
+       <y>280</y>
        <width>111</width>
        <height>16</height>
       </rect>
@@ -149,7 +149,7 @@
      <property name="geometry">
       <rect>
        <x>160</x>
-       <y>190</y>
+       <y>300</y>
        <width>21</width>
        <height>22</height>
       </rect>
@@ -171,7 +171,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>140</y>
+       <y>150</y>
        <width>131</width>
        <height>21</height>
       </rect>
@@ -193,7 +193,7 @@
      <property name="geometry">
       <rect>
        <x>160</x>
-       <y>140</y>
+       <y>150</y>
        <width>21</width>
        <height>22</height>
       </rect>
@@ -218,7 +218,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>120</y>
+       <y>130</y>
        <width>111</width>
        <height>16</height>
       </rect>
@@ -231,7 +231,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>270</y>
+       <y>260</y>
        <width>161</width>
        <height>16</height>
       </rect>
@@ -240,11 +240,11 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
-    <widget class="QSlider" name="waveletSlider_2">
+    <widget class="QSlider" name="temporalSlider">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>240</y>
+       <y>230</y>
        <width>131</width>
        <height>21</height>
       </rect>
@@ -263,7 +263,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>220</y>
+       <y>210</y>
        <width>111</width>
        <height>16</height>
       </rect>
@@ -272,11 +272,11 @@
       <string>Temporal Alpha</string>
      </property>
     </widget>
-    <widget class="QDoubleSpinBox" name="doubleSpinBox">
+    <widget class="QDoubleSpinBox" name="temporalSliderBox">
      <property name="geometry">
       <rect>
        <x>160</x>
-       <y>240</y>
+       <y>230</y>
        <width>31</width>
        <height>22</height>
       </rect>
@@ -295,6 +295,115 @@
      </property>
      <property name="value">
       <double>0.200000000000000</double>
+     </property>
+    </widget>
+    <widget class="Line" name="line_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>190</y>
+       <width>161</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="sigmaPBox">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>330</y>
+       <width>62</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="maximum">
+      <double>1000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>330</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>SigmaP</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="sigmaNBox">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>360</y>
+       <width>62</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="decimals">
+      <number>2</number>
+     </property>
+     <property name="maximum">
+      <double>1000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>128.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_5">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>360</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>SigmaN</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="sigmaLBox">
+     <property name="geometry">
+      <rect>
+       <x>120</x>
+       <y>390</y>
+       <width>62</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="decimals">
+      <number>3</number>
+     </property>
+     <property name="maximum">
+      <double>1000.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>4.000000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>390</y>
+       <width>81</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>SigmaL</string>
      </property>
     </widget>
    </widget>
@@ -326,18 +435,150 @@
   <connection>
    <sender>actionOpen</sender>
    <signal>triggered()</signal>
-   <receiver>view</receiver>
-   <slot>fileOpen()</slot>
+   <receiver>MainWindow</receiver>
+   <slot>file_open()</slot>
    <hints>
     <hint type="sourcelabel">
      <x>-1</x>
      <y>-1</y>
     </hint>
     <hint type="destinationlabel">
-     <x>269</x>
-     <y>310</y>
+     <x>511</x>
+     <y>511</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>fullButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>90</x>
+     <y>102</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>directButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>90</x>
+     <y>129</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>samplesSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>75</x>
+     <y>212</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>temporalSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>75</x>
+     <y>292</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>waveletSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>75</x>
+     <y>362</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sigmaPBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>150</x>
+     <y>392</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sigmaNBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>150</x>
+     <y>422</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>sigmaLBox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>150</x>
+     <y>452</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
     </hint>
    </hints>
   </connection>
  </connections>
+ <slots>
+  <slot>file_open()</slot>
+  <slot>change_settings()</slot>
+ </slots>
 </ui>

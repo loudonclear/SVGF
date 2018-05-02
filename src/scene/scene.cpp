@@ -2,12 +2,8 @@
 
 #include "gl/shaders/Shader.h"
 #include "gl/textures/Texture2D.h"
-#include "gl/util/ColorBuffer.h"
-#include "gl/util/ColorVarianceBuffer.h"
 #include "gl/util/FullScreenQuad.h"
 #include "gl/util/ResourceLoader.h"
-#include "gl/util/SVGFGBuffer.h"
-#include "gl/util/ResultBuffer.h"
 #include "pathtracer/pathtracer.h"
 #include "util/CS123Common.h"
 #include "util/CS123XmlSceneParser.h"
@@ -30,7 +26,7 @@ using namespace std;
 using namespace std::chrono;
 using namespace CS123::GL;
 
-Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height), m_pipeline(false)
+Scene::Scene(int width, int height, unsigned int samples) : width(width), height(height), samples(samples), wavelet_iterations(5), m_pipeline(false)
 {
     init_shaders();
     m_pathTracer = std::make_shared<PathTracer>(width, height, samples);
@@ -40,6 +36,7 @@ Scene::Scene(int width, int height, unsigned int samples) : width(width), height
     m_colorVarianceBuffer2 = std::make_shared<ColorVarianceBuffer>(width, height);
     m_directHistory = std::make_unique<ColorHistoryBuffer>(width, height);
     m_indirectHistory = std::make_unique<ColorHistoryBuffer>(width, height);
+    m_displayBuffer = std::make_unique<DisplayBuffer>(width, height);
 }
 
 
@@ -120,6 +117,25 @@ std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
   return scene;
 }
 
+void Scene::change_settings(int renderMode, int numSamples, int waveletIterations, float alpha, float sigmaP, float sigmaN, float sigmaL) {
+    m_reconstructionShader->bind();
+    m_reconstructionShader->setUniform("mode", renderMode);
+    m_reconstructionShader->unbind();
+
+    m_pathTracer->numSamples(numSamples);
+
+    wavelet_iterations = waveletIterations;
+
+    m_integration_alpha = alpha;
+
+
+    m_waveletShader->bind();
+    m_waveletShader->setUniform("sigmaP", sigmaP);
+    m_waveletShader->setUniform("sigmaN", sigmaN);
+    m_waveletShader->setUniform("sigmaL", sigmaL);
+    m_waveletShader->unbind();
+}
+
 RenderBuffers Scene::trace(bool save) {
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
     auto buffers = m_pathTracer->traceScene(*this);
@@ -176,6 +192,7 @@ void Scene::resize(int w, int h) {
     m_colorVarianceBuffer2 = std::make_shared<ColorVarianceBuffer>(width, height);
     m_directHistory = std::make_unique<ColorHistoryBuffer>(width, height);
     m_indirectHistory = std::make_unique<ColorHistoryBuffer>(width, height);
+    m_displayBuffer = std::make_unique<DisplayBuffer>(width, height);
 }
 
 void Scene::render() {
@@ -188,7 +205,7 @@ void Scene::render() {
         // INPUT: scene
         // OUTPUT: depth, normals, mesh/mat ids, motion vectors
 
-        // TODO OpenGL's G-Buffer did not match up with pathracing data
+        // TODO OpenGL's G-Buffer did not match up with pathtracing data
         // m_SVGFGBuffer->bind();
         // glClearColor(0.0, 0.0, 0.0, -1);
         // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -237,36 +254,33 @@ void Scene::render() {
         // Wavelet filter
         // INPUT: integrated color, variance, luminance
         // OUTPUT: 1st level filtered color, 5th level filtered color
+        // Update color and moments history
+        // INPUT: 1st level filtered color, integrated moments
+        // OUTPUT: color history, moments history
 
         ResultBuffer direct(width, height);
         ResultBuffer indirect(width, height);
 
         ColorVarianceBuffer cv_temp(width, height);
         calc_variance(direct_accumulated, cv_temp);
-        waveletPass(direct, cv_temp, *m_directHistory, 5);
+        waveletPass(direct, cv_temp, *m_directHistory, wavelet_iterations);
         calc_variance(indirect_accumulated, cv_temp);
-        waveletPass(indirect, cv_temp, *m_indirectHistory, 5);
-
-        // TODO: Update color and moments history
-        // INPUT: 1st level filtered color, integrated moments
-        // OUTPUT: color history, moments history
+        waveletPass(indirect, cv_temp, *m_indirectHistory, wavelet_iterations);
 
 
-        // Reconstruction
+        // Reconstruction (w/tone mapping)
         // INPUT: direct/indirect lighting, 5th level filtered color
         // OUTPUT: combined light and primary albedo
         this->recombineColor(cb, direct, indirect);
 
-        // TODO: Post-processing (tone mapping, temporal antialiasing)
+        // Post-processing (fxaa)
         // INPUT: combined light and primary albedo
         // OUTPUT: rendered image
 
         m_fxaaShader->bind();
-        m_fxaaShader->setTexture("color", m_colorVarianceBuffer1->color_variance_texture());
+        m_fxaaShader->setTexture("color", m_displayBuffer->color_texture());
         renderQuad();
         m_fxaaShader->unbind();
-
-        m_colorVarianceBuffer1->display();
 
         high_resolution_clock::time_point t3 = high_resolution_clock::now();
         float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
@@ -295,7 +309,6 @@ void Scene::render() {
         }
         m_defaultShader->unbind();
     }
-
 }
 
 void Scene::draw_alpha(const CS123::GL::Texture2D& tex){
@@ -306,17 +319,6 @@ void Scene::draw_alpha(const CS123::GL::Texture2D& tex){
   m_drawAlphaShader->unbind();
   Buffer::unbind();
 }
-
-// TODO XXX this function does not work for some reason -- perhaps OpenGL optimizes out the copy shader?
-// void Scene::copy_texture_color(const CS123::GL::Texture2D &tex, Buffer &output_buff) {
-//   output_buff.bind();
-//   m_colorCopyShader->bind();
-//   m_colorCopyShader->setTexture("color", tex);
-//   renderQuad();
-//   m_colorCopyShader->unbind();
-//   output_buff.unbind();
-// }
-
 
 void Scene::calc_motion_vectors(ResultBuffer& out) const {
   if ((m_camera.getViewMatrix() != m_camera_prev.getViewMatrix()) ||
@@ -405,14 +407,14 @@ void Scene::waveletPass(ResultBuffer& rb, const Buffer& input_buff, ColorHistory
 
 void Scene::recombineColor(const ColorBuffer &cb, const ResultBuffer &direct,
                            const ResultBuffer &indirect) {
-     m_colorVarianceBuffer1->bind();
+     m_displayBuffer->bind();
      m_reconstructionShader->bind();
      m_reconstructionShader->setTexture("direct", direct.color_texture());
      m_reconstructionShader->setTexture("indirect", indirect.color_texture());
      m_reconstructionShader->setTexture("albedo", cb.getAlbedoTexture());
      renderQuad();
      m_reconstructionShader->unbind();
-     m_colorVarianceBuffer1->unbind();
+     m_displayBuffer->unbind();
 }
 
 void Scene::setBVH(const BVH &bvh)
@@ -621,8 +623,3 @@ void Scene::addLight(const CS123SceneLightData &data)
 {
     m_lights.push_back(data);
 }
-
-//const std::vector<CS123SceneLightData> &Scene::getLights()
-//{
-//    return m_lights;
-//}
