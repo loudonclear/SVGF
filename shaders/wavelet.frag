@@ -91,5 +91,5 @@ void main() {
     } else {
         cvnext = texture(colorVariance, uv).rgba;
     }
-    cvnext.rgb = clamp(cvnext.rgb, vec3(0.0), vec3(100.0));
+    cvnext.rgb = clamp(cvnext.rgb, vec3(0.0), vec3(10.0));
 }

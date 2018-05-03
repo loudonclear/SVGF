@@ -26,6 +26,7 @@ void main() {
   // TODO filtered color input based on GBuffer
   vec3 col = texture(current_color, uv).rgb;
   vec3 prev_uv = texture(motion_vectors, uv).rgb;
+  prev_uv = vec3(uv.x, uv.y, 1);
   vec3 col_prev = texture(col_history, prev_uv.xy).rgb;
   vec2 moments_prev = texture(moments, uv).rg;
   // if motion vector is invalid, l is 0.

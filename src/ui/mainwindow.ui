@@ -65,9 +65,9 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>20</y>
+       <y>10</y>
        <width>171</width>
-       <height>101</height>
+       <height>131</height>
       </rect>
      </property>
      <property name="title">
@@ -79,7 +79,7 @@
         <x>0</x>
         <y>20</y>
         <width>161</width>
-        <height>76</height>
+        <height>103</height>
        </rect>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
@@ -107,6 +107,13 @@
         <widget class="QRadioButton" name="indirectButton">
          <property name="text">
           <string>Indirect</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QRadioButton" name="halfButton">
+         <property name="text">
+          <string>Half and Half</string>
          </property>
         </widget>
        </item>
@@ -171,7 +178,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>150</y>
+       <y>170</y>
        <width>131</width>
        <height>21</height>
       </rect>
@@ -193,7 +200,7 @@
      <property name="geometry">
       <rect>
        <x>160</x>
-       <y>150</y>
+       <y>170</y>
        <width>21</width>
        <height>22</height>
       </rect>
@@ -218,7 +225,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>130</y>
+       <y>150</y>
        <width>111</width>
        <height>16</height>
       </rect>
@@ -384,13 +391,13 @@
       </rect>
      </property>
      <property name="decimals">
-      <number>3</number>
+      <number>2</number>
      </property>
      <property name="maximum">
       <double>1000.000000000000000</double>
      </property>
      <property name="value">
-      <double>4.000000000000000</double>
+      <double>7.500000000000000</double>
      </property>
     </widget>
     <widget class="QLabel" name="label_6">
@@ -646,6 +653,22 @@
     <hint type="sourcelabel">
      <x>90</x>
      <y>531</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>indirectButton</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>90</x>
+     <y>146</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
