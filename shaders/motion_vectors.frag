@@ -28,6 +28,7 @@ vec4 project_reverse(vec3 screen_pos, mat4 v, mat4 p){
 }
 
 void main() {
+  vec2 texelSize = 1.0 / textureSize(pos_id, 0).xy;
   float id = texture(pos_id, uv).a;
   vec3 n = texture(normals, uv).xyz;
 
@@ -37,7 +38,11 @@ void main() {
   // project world space to previous pos
   vec4 point_prev = project(world_pos.xyz, v_prev, p_prev);
   uv_prev.xy = 0.5 * (point_prev.xy / point_prev.w + vec2(1,1));
-  // uv_prev.xy = point_prev.xy / point_prev.z;
+
+  // clamp small motion to account for drift
+  vec2 delta = uv_prev.xy - uv;
+  bool big_motion = length(delta / (texelSize)) > 1.0;
+  uv_prev.xy = uv + delta * float(big_motion);
 
   // consistency check current and previous pos
   // float id_prev = texture(pos_id_prev, abs(uv_prev.xy)).a;
@@ -46,5 +51,9 @@ void main() {
   // TODO what to do in case of background
   bool consistency = (id_prev == id) && (dot(n, n_prev) > M_PI / 4);
   uv_prev.z = float(consistency);
-  // uv_prev.xyz = vec3(length(uv.xy - uv_prev.xy) * 200);
+  // uv_prev.xy = uv;
+  // uv_prev.xy = ;
+  // uv_prev.y = 0;
+  // uv_prev.z = 0;
+
 }

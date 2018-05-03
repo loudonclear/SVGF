@@ -282,6 +282,8 @@ void Scene::render() {
         renderQuad();
         m_fxaaShader->unbind();
 
+        // motion_vectors.display();
+
         high_resolution_clock::time_point t3 = high_resolution_clock::now();
         float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
         std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
