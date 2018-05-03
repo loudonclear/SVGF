@@ -8,6 +8,7 @@
 
 #include <QRunnable>
 #include <QThreadPool>
+#include <QCoreApplication>
 
 #include <random>
 #include <iostream>
@@ -73,6 +74,9 @@ void PathTracer::render(const Scene& scene, RenderBuffers& buffs, glm::mat4x4 &i
         for (int x = x0; x < x1; x++) {
             int offset = x + ((m_height - y - 1) * m_width);
             auto pix_elem = tracePixel(x, y, scene, invViewMat);
+            glm::clamp(pix_elem.m_layers.at(RenderBuffers::INDIRECT), glm::vec3(0.f), glm::vec3(0.85f));
+            glm::clamp(pix_elem.m_layers.at(RenderBuffers::DIRECT), glm::vec3(0.f), glm::vec3(0.85f));
+
 //            if(pix_elem.isnan()){
 //              std::cout << "MAMA MIA, " << x << ", " << y << std::endl;
 //              if(x > x0){
@@ -86,6 +90,7 @@ void PathTracer::render(const Scene& scene, RenderBuffers& buffs, glm::mat4x4 &i
 //            }
             buffs[offset] = pix_elem;
         }
+        QCoreApplication::processEvents();
     }
 }
 
@@ -165,8 +170,7 @@ glm::vec3 directLighting(const glm::vec3& hit, const glm::vec3& normal, const Sc
             const tinyobj::material_t& mat = m->getMaterial(t->getIndex());
 
             if (glm::dot(toLight, t->getNormal(i)) > 0.f) continue;
-            float ndotl = glm::dot(toLight, normal);
-            if (ndotl <= 0.f) continue;
+            float ndotl = glm::clamp(glm::dot(toLight, normal), 0.f, 1.f);
 
             intensity += glm::vec3(mat.emission[0], mat.emission[1], mat.emission[2]) * (light->getSurfaceArea() * ndotl * glm::abs(glm::dot(toLight, glm::normalize(t->getNormal(i)))) / distSquare);
         }

@@ -11,6 +11,8 @@ uniform float mulReduce = 1.0 / 8.0;
 uniform float minReduce = 1.0 / 128.0;
 uniform float maxSpan = 8.0;
 
+uniform bool enabled = true;
+
 
 float luma(vec3 c){
     return dot(c, vec3(0.2126, 0.7152, 0.0722));
@@ -19,6 +21,12 @@ float luma(vec3 c){
 void main() {
     vec2 texelSize = 1.0 / textureSize(color, 0).xy;
     vec3 c = texture(color, uv).rgb;
+
+    if (!enabled) {
+        fragColor = vec4(c, 1.0);
+        return;
+    }
+
     vec3 ul = textureOffset(color, uv, ivec2(-1, 1)).rgb;
     vec3 ur = textureOffset(color, uv, ivec2(1, 1)).rgb;
     vec3 dl = textureOffset(color, uv, ivec2(-1, -1)).rgb;

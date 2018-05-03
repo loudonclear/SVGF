@@ -35,7 +35,7 @@ public:
 
     RenderBuffers trace(bool save = false);
     void resize(int w, int h);
-    void change_settings(int renderMode, int numSamples, int waveletIterations, float alpha, float sigmaP, float sigmaN, float sigmaL);
+    void change_settings(int renderMode, int numSamples, float alpha, bool temporalReprojection, int waveletIterations, float sigmaP, float sigmaN, float sigmaL, bool fxaa);
     void render();
     bool& pipeline();
     const bool& pipeline() const;

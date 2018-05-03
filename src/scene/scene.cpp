@@ -117,7 +117,7 @@ std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
   return scene;
 }
 
-void Scene::change_settings(int renderMode, int numSamples, int waveletIterations, float alpha, float sigmaP, float sigmaN, float sigmaL) {
+void Scene::change_settings(int renderMode, int numSamples, float alpha, bool temporalReprojection, int waveletIterations, float sigmaP, float sigmaN, float sigmaL, bool fxaa) {
     m_reconstructionShader->bind();
     m_reconstructionShader->setUniform("mode", renderMode);
     m_reconstructionShader->unbind();
@@ -134,6 +134,10 @@ void Scene::change_settings(int renderMode, int numSamples, int waveletIteration
     m_waveletShader->setUniform("sigmaN", sigmaN);
     m_waveletShader->setUniform("sigmaL", sigmaL);
     m_waveletShader->unbind();
+
+    m_fxaaShader->bind();
+    m_fxaaShader->setUniform("enabled", fxaa);
+    m_fxaaShader->unbind();
 }
 
 RenderBuffers Scene::trace(bool save) {
