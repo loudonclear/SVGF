@@ -117,7 +117,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>300</y>
+       <y>330</y>
        <width>131</width>
        <height>21</height>
       </rect>
@@ -136,7 +136,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>280</y>
+       <y>310</y>
        <width>111</width>
        <height>16</height>
       </rect>
@@ -149,7 +149,7 @@
      <property name="geometry">
       <rect>
        <x>160</x>
-       <y>300</y>
+       <y>330</y>
        <width>21</width>
        <height>22</height>
       </rect>
@@ -231,7 +231,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>260</y>
+       <y>290</y>
        <width>161</width>
        <height>16</height>
       </rect>
@@ -314,7 +314,7 @@
      <property name="geometry">
       <rect>
        <x>120</x>
-       <y>330</y>
+       <y>360</y>
        <width>62</width>
        <height>22</height>
       </rect>
@@ -333,7 +333,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>330</y>
+       <y>360</y>
        <width>81</width>
        <height>16</height>
       </rect>
@@ -346,7 +346,7 @@
      <property name="geometry">
       <rect>
        <x>120</x>
-       <y>360</y>
+       <y>390</y>
        <width>62</width>
        <height>22</height>
       </rect>
@@ -365,7 +365,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>360</y>
+       <y>390</y>
        <width>81</width>
        <height>16</height>
       </rect>
@@ -378,7 +378,7 @@
      <property name="geometry">
       <rect>
        <x>120</x>
-       <y>390</y>
+       <y>420</y>
        <width>62</width>
        <height>22</height>
       </rect>
@@ -397,13 +397,58 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>390</y>
+       <y>420</y>
        <width>81</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
       <string>SigmaL</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="temporalReprojectionCheckBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>260</y>
+       <width>161</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Temporal Reprojection</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="Line" name="line_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>450</y>
+       <width>161</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="fxaaCheckBox">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>470</y>
+       <width>161</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>FXAA</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
@@ -569,6 +614,38 @@
     <hint type="sourcelabel">
      <x>150</x>
      <y>452</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>temporalReprojectionCheckBox</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>90</x>
+     <y>321</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>fxaaCheckBox</sender>
+   <signal>stateChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>90</x>
+     <y>531</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>

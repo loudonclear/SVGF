@@ -37,8 +37,11 @@ void MainWindow::change_settings() {
 
     int rendermode = ui->fullButton->isChecked() ? 0 : (ui->directButton->isChecked() ? 1 : 2);
     int samples = ui->samplesSlider->value();
-    int waveletIterations = ui->waveletSlider->value();
     float temporalAlpha = ui->temporalSlider->value() / 100.f;
+    bool temporalReprojection = ui->temporalReprojectionCheckBox->isChecked();
+    int waveletIterations = ui->waveletSlider->value();
+    bool fxaa = ui->fxaaCheckBox->isChecked();
+
 
     ui->samplesSliderBox->setValue(samples);
     ui->waveletSliderBox->setValue(waveletIterations);
@@ -48,5 +51,5 @@ void MainWindow::change_settings() {
     float sigmaN = ui->sigmaNBox->value();
     float sigmaL = ui->sigmaLBox->value();
 
-    ui->view->change_settings(rendermode, samples, waveletIterations, temporalAlpha, sigmaP, sigmaN, sigmaL);
+    ui->view->change_settings(rendermode, samples, temporalAlpha, temporalReprojection, waveletIterations, sigmaP, sigmaN, sigmaL, fxaa);
 }

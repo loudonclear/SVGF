@@ -81,9 +81,9 @@ void View::initializeGL() {
     }
 }
 
-void View::change_settings(int renderMode, int numSamples, int waveletIterations, float alpha, float sigmaP, float sigmaN, float sigmaL) {
+void View::change_settings(int renderMode, int numSamples, float alpha, bool temporalReprojection, int waveletIterations, float sigmaP, float sigmaN, float sigmaL, bool fxaa) {
     if (m_scene) {
-        m_scene->change_settings(renderMode, numSamples, waveletIterations, alpha, sigmaP, sigmaN, sigmaL);
+        m_scene->change_settings(renderMode, numSamples, alpha, temporalReprojection, waveletIterations, sigmaP, sigmaN, sigmaL, fxaa);
     }
 }
 
