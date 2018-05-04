@@ -77,20 +77,8 @@ void PathTracer::render(const Scene& scene, RenderBuffers& buffs, glm::mat4x4 &i
             glm::clamp(pix_elem.m_layers.at(RenderBuffers::INDIRECT), glm::vec3(0.f), glm::vec3(0.85f));
             glm::clamp(pix_elem.m_layers.at(RenderBuffers::DIRECT), glm::vec3(0.f), glm::vec3(0.85f));
 
-//            if(pix_elem.isnan()){
-//              std::cout << "MAMA MIA, " << x << ", " << y << std::endl;
-//              if(x > x0){
-//                pix_elem = buffs[offset-1];
-//              } else if (y > y0) {
-//                pix_elem = buffs[x + ((y-1) * m_width)];
-//              } else {
-//                // TODO actually clamp here instead of returning 0
-//                pix_elem = RenderBuffers::Element::zero();
-//              }
-//            }
             buffs[offset] = pix_elem;
         }
-        QCoreApplication::processEvents();
     }
 }
 
