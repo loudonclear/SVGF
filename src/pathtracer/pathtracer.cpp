@@ -77,20 +77,8 @@ void PathTracer::render(const Scene& scene, RenderBuffers& buffs, glm::mat4x4 &i
             glm::clamp(pix_elem.m_layers.at(RenderBuffers::INDIRECT), glm::vec3(0.f), glm::vec3(0.85f));
             glm::clamp(pix_elem.m_layers.at(RenderBuffers::DIRECT), glm::vec3(0.f), glm::vec3(0.85f));
 
-//            if(pix_elem.isnan()){
-//              std::cout << "MAMA MIA, " << x << ", " << y << std::endl;
-//              if(x > x0){
-//                pix_elem = buffs[offset-1];
-//              } else if (y > y0) {
-//                pix_elem = buffs[x + ((y-1) * m_width)];
-//              } else {
-//                // TODO actually clamp here instead of returning 0
-//                pix_elem = RenderBuffers::Element::zero();
-//              }
-//            }
             buffs[offset] = pix_elem;
         }
-        QCoreApplication::processEvents();
     }
 }
 
@@ -226,8 +214,9 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
             elem[RenderBuffers::ALBEDO] = glm::vec3(1.0f, 1.0f, 1.0f);
             const float pdf_rr = depth < minDepth ? 1.f : std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
             if (random() < pdf_rr) {
-              const glm::vec3 refl =
+              glm::vec3 refl =
                   glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
+              if (glm::dot(normal, r.d) >= 0.f) refl = r.d;
               elem[RenderBuffers::INDIRECT] = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true)[RenderBuffers::FULL] / pdf_rr;
               elem[RenderBuffers::FULL] = elem[RenderBuffers::ALBEDO] * elem[RenderBuffers::INDIRECT];
             }

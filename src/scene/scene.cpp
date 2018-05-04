@@ -145,12 +145,12 @@ void Scene::change_settings(int renderMode, int numSamples, float alpha, bool te
 }
 
 RenderBuffers Scene::trace(bool save) {
-    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+    //high_resolution_clock::time_point t1 = high_resolution_clock::now();
     auto buffers = m_pathTracer->traceScene(*this);
-    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    //high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
-    float duration = duration_cast<milliseconds>( t2 - t1 ).count() / 1000.0;
-    std::cout << "Scene took " << duration << " seconds to trace." << std::endl;
+    //float duration = duration_cast<milliseconds>( t2 - t1 ).count() / 1000.0;
+    //std::cout << "Scene took " << duration << " seconds to trace." << std::endl;
     if (save) {
       buffers.save();
     }
@@ -296,9 +296,9 @@ void Scene::render() {
 
         // motion_vectors.display();
 
-        high_resolution_clock::time_point t3 = high_resolution_clock::now();
-        float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
-        std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
+        //high_resolution_clock::time_point t3 = high_resolution_clock::now();
+        //float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
+        //std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
 
         // Swap current and previous G buffers, update camera_prev
         // TODO maybe don't do this in render code?
@@ -337,7 +337,7 @@ void Scene::draw_alpha(const CS123::GL::Texture2D& tex){
 void Scene::calc_motion_vectors(ResultBuffer& out) const {
   if ((m_camera.getViewMatrix() != m_camera_prev.getViewMatrix()) ||
       (m_camera.getProjectionMatrix() != m_camera_prev.getProjectionMatrix())) {
-    std::cout << "CHANGE" << std::endl;
+    //std::cout << "CHANGE" << std::endl;
   }
   out.bind();
   m_motionVectorsShader->bind();

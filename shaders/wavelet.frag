@@ -92,4 +92,5 @@ void main() {
         cvnext = texture(colorVariance, uv).rgba;
     }
     cvnext.rgb = clamp(cvnext.rgb, vec3(0.0), vec3(10.0));
+    cvnext.a = min(max(cvnext.a, 0.0), 10.0);
 }
