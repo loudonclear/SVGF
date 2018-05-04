@@ -50,6 +50,12 @@ void main() {
 
   // update data;
   // alpha_weight = alpha;
+  // float l_new;
+  // if(l == 0){
+  //   l_new = l + 1;
+  // } else {
+  //   l_new = l;
+  // }
   fragColorVariance =
       vec4(col * alpha_weight + (1 - alpha_weight) * col_prev, l + 1);
   float new_luma = luma(col);

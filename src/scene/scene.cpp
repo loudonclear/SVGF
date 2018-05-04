@@ -254,7 +254,7 @@ void Scene::render() {
         ColorHistoryBuffer indirect_accumulated(width, height);
         accumulate(*m_indirectHistory, motion_vectors, cb.getIndirectTexture(), indirect_accumulated, m_integration_alpha);
 
-        this->draw_alpha(direct_accumulated.color_history());
+        // this->draw_alpha(m_directHistory->color_history());
         // motion_vectors.display();
 
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
@@ -282,17 +282,17 @@ void Scene::render() {
 
         // Reconstruction (w/tone mapping)
         // INPUT: direct/indirect lighting, 5th level filtered color
-        // // OUTPUT: combined light and primary albedo
-        // this->recombineColor(cb, direct, indirect);
+        // OUTPUT: combined light and primary albedo
+        this->recombineColor(cb, direct, indirect);
 
         // Post-processing (fxaa)
         // INPUT: combined light and primary albedo
         // OUTPUT: rendered image
 
-        // m_fxaaShader->bind();
-        // m_fxaaShader->setTexture("color", m_displayBuffer->color_texture());
-        // renderQuad();
-        // m_fxaaShader->unbind();
+        m_fxaaShader->bind();
+        m_fxaaShader->setTexture("color", m_displayBuffer->color_texture());
+        renderQuad();
+        m_fxaaShader->unbind();
 
         // motion_vectors.display();
 
