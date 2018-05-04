@@ -49,8 +49,9 @@ void main() {
   float id_prev = texture(pos_id_prev, abs(uv_prev.xy)).a;
   vec3 n_prev = texture(normals_prev, abs(uv_prev.xy)).xyz;
   // TODO what to do in case of background
-  bool consistency = (id_prev == id) && (dot(n, n_prev) > M_PI / 4);
+  bool consistency = (id_prev == id) && (dot(n, n_prev) > sqrt(2)/2.0);
   uv_prev.z = float(consistency);
+  // uv_prev = world_pos.xyz;
   // uv_prev.xy = uv;
   // uv_prev.xy = ;
   // uv_prev.y = 0;

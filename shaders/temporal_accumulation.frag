@@ -33,15 +33,19 @@ void main() {
   vec3 col_prev = texture(col_history, prev_uv.xy).rgb;
   vec2 moments_prev = texture(moments, prev_uv.xy).rg;
   // if motion vector is invalid, l is 0.
-  float l = texture(col_history, prev_uv.xy).a * float(prev_uv.z > 0);
+  float l = texture(col_history, prev_uv.xy).a; // * float(prev_uv.z > 0);
+  if(prev_uv.z == 0){
+    l = 0;
+  }
 
   // if l == 0, set alpha to 1 and discard col_prev;
   float alpha_weight = max(float(l == 0), alpha);
-  // alpha_weight = alpha; // ignore l for now, just test interpolation
+
   if (any(isnan(col_prev))) {
     //  fragColorVariance = vec4(col, l + 1);
     col_prev = vec3(0, 0, 0);
     alpha_weight = 1.0;
+    // l = 0;
   }
 
   // update data;

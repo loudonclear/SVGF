@@ -67,7 +67,7 @@ void main() {
 
                 float wn = pow(max(0.0, dot(pNormal, qNormal)), sigmaN);
 
-                float gvl = 0.0;
+                float gvl = 0.001;
                 for (int y0 = -1; y0 <= 1; y0++) {
                     for (int x0 = -1; x0 <= 1; x0++) {
                         gvl += gaussKernel[x0 + 3*y0 + 4] * texture(colorVariance, loc + vec2(x0, y0) * texelSize).a;

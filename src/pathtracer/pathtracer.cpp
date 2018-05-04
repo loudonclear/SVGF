@@ -268,5 +268,7 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
             return elem;
         }
     }
-    return RenderBuffers::Element::zero();
+    auto elem = RenderBuffers::Element::zero();
+    elem[RenderBuffers::OBJ_ID] = glm::vec3(-1.0);
+    return elem;
 }

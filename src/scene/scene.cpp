@@ -254,6 +254,9 @@ void Scene::render() {
         ColorHistoryBuffer indirect_accumulated(width, height);
         accumulate(*m_indirectHistory, motion_vectors, cb.getIndirectTexture(), indirect_accumulated, m_integration_alpha);
 
+        this->draw_alpha(direct_accumulated.color_history());
+        // motion_vectors.display();
+
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
         // TODO: Variance estimation
@@ -277,20 +280,19 @@ void Scene::render() {
         calc_variance(indirect_accumulated, cv_temp);
         waveletPass(indirect, cv_temp, *m_indirectHistory, wavelet_iterations);
 
-
         // Reconstruction (w/tone mapping)
         // INPUT: direct/indirect lighting, 5th level filtered color
-        // OUTPUT: combined light and primary albedo
-        this->recombineColor(cb, direct, indirect);
+        // // OUTPUT: combined light and primary albedo
+        // this->recombineColor(cb, direct, indirect);
 
         // Post-processing (fxaa)
         // INPUT: combined light and primary albedo
         // OUTPUT: rendered image
 
-        m_fxaaShader->bind();
-        m_fxaaShader->setTexture("color", m_displayBuffer->color_texture());
-        renderQuad();
-        m_fxaaShader->unbind();
+        // m_fxaaShader->bind();
+        // m_fxaaShader->setTexture("color", m_displayBuffer->color_texture());
+        // renderQuad();
+        // m_fxaaShader->unbind();
 
         // motion_vectors.display();
 
@@ -366,7 +368,6 @@ void Scene::accumulate(ColorHistoryBuffer &history, const ResultBuffer& motion_v
   m_temporalAccumulationShader->unbind();
   accumulator.unbind();
 
-  // TODO update history moments
   accumulator.blit_to(GL_COLOR_ATTACHMENT0, history, GL_COLOR_ATTACHMENT0);
   accumulator.blit_to(GL_COLOR_ATTACHMENT1, history, GL_COLOR_ATTACHMENT1);
 }
