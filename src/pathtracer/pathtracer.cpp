@@ -226,8 +226,9 @@ RenderBuffers::Element PathTracer::traceRay(const Ray& r, const Scene& scene, in
             elem[RenderBuffers::ALBEDO] = glm::vec3(1.0f, 1.0f, 1.0f);
             const float pdf_rr = depth < minDepth ? 1.f : std::min(std::max(mat.specular[0], std::max(mat.specular[1], mat.specular[2])), 0.99f);
             if (random() < pdf_rr) {
-              const glm::vec3 refl =
+              glm::vec3 refl =
                   glm::normalize(r.d - 2.f * normal * glm::dot(normal, r.d));
+              if (glm::dot(normal, r.d) >= 0.f) refl = r.d;
               elem[RenderBuffers::INDIRECT] = traceRay(Ray(hit + FLOAT_EPSILON * refl, refl), scene, depth + 1, true)[RenderBuffers::FULL] / pdf_rr;
               elem[RenderBuffers::FULL] = elem[RenderBuffers::ALBEDO] * elem[RenderBuffers::INDIRECT];
             }
