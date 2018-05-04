@@ -27,9 +27,9 @@ void main() {
   vec3 col = texture(current_color, uv).rgb;
   vec3 prev_uv = texture(motion_vectors, uv).rgb;
   vec3 col_prev = texture(col_history, prev_uv.xy).rgb;
-  vec2 moments_prev = texture(moments, uv).rg;
+  vec2 moments_prev = texture(moments, prev_uv.xy).rg;
   // if motion vector is invalid, l is 0.
-  float l = texture(col_history, uv).a * float(prev_uv.z > 0);
+  float l = texture(col_history, prev_uv.xy).a * float(prev_uv.z > 0);
 
   // if l == 0, set alpha to 1 and discard col_prev;
   float alpha_weight = max(float(l == 0), alpha);
