@@ -9,6 +9,7 @@ layout(location = 0) out vec4 fragColorVariance;
 layout(location = 1) out vec2 out_moments;
 
 uniform float alpha;
+uniform bool temporalReprojection = true;
 
 uniform sampler2D col_history;
 uniform sampler2D motion_vectors;
@@ -20,13 +21,15 @@ float luma(vec3 c){
 }
 
 void main() {
-  // TODO right now we're not taking into account motion. Just accumulate color
-  // directly;
 
-  // TODO filtered color input based on GBuffer
   vec3 col = texture(current_color, uv).rgb;
-  vec3 prev_uv = texture(motion_vectors, uv).rgb;
-  prev_uv = vec3(uv.x, uv.y, 1);
+  vec3 prev_uv;
+  if (temporalReprojection) {
+    prev_uv = texture(motion_vectors, uv).rgb;
+  } else {
+    prev_uv = vec3(uv.x, uv.y, 1);
+  }
+
   vec3 col_prev = texture(col_history, prev_uv.xy).rgb;
   vec2 moments_prev = texture(moments, prev_uv.xy).rg;
   // if motion vector is invalid, l is 0.

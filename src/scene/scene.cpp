@@ -129,6 +129,10 @@ void Scene::change_settings(int renderMode, int numSamples, float alpha, bool te
     m_integration_alpha = alpha;
 
 
+    m_temporalAccumulationShader->bind();
+    m_temporalAccumulationShader->setUniform("temporalReprojection", temporalReprojection);
+    m_temporalAccumulationShader->unbind();
+
     m_waveletShader->bind();
     m_waveletShader->setUniform("sigmaP", sigmaP);
     m_waveletShader->setUniform("sigmaN", sigmaN);

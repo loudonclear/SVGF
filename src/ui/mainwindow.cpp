@@ -42,7 +42,6 @@ void MainWindow::change_settings() {
     int waveletIterations = ui->waveletSlider->value();
     bool fxaa = ui->fxaaCheckBox->isChecked();
 
-
     ui->samplesSliderBox->setValue(samples);
     ui->waveletSliderBox->setValue(waveletIterations);
     ui->temporalSliderBox->setValue(temporalAlpha);
