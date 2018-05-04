@@ -35,7 +35,7 @@ void MainWindow::on_actionSave_triggered()
 
 void MainWindow::change_settings() {
 
-    int rendermode = ui->fullButton->isChecked() ? 0 : (ui->directButton->isChecked() ? 1 : 2);
+    int rendermode = ui->fullButton->isChecked() ? 0 : (ui->directButton->isChecked() ? 1 : (ui->indirectButton->isChecked() ? 2 : 3));
     int samples = ui->samplesSlider->value();
     float temporalAlpha = ui->temporalSlider->value() / 100.f;
     bool temporalReprojection = ui->temporalReprojectionCheckBox->isChecked();

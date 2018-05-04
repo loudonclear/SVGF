@@ -231,9 +231,9 @@ void Scene::render() {
         // Pathtracing
         // INPUT: scene
         // OUTPUT: direct/indirect lighting color
-        high_resolution_clock::time_point t1 = high_resolution_clock::now();
+        //high_resolution_clock::time_point t1 = high_resolution_clock::now();
         auto buffers = this->trace();
-        high_resolution_clock::time_point t2 = high_resolution_clock::now();
+
         ColorBuffer cb = ColorBuffer(width, height, buffers);
         m_SVGFGBuffer->set_textures(buffers);
 
@@ -249,6 +249,8 @@ void Scene::render() {
         accumulate(*m_directHistory, motion_vectors, cb.getDirectTexture(), direct_accumulated, m_integration_alpha);
         ColorHistoryBuffer indirect_accumulated(width, height);
         accumulate(*m_indirectHistory, motion_vectors, cb.getIndirectTexture(), indirect_accumulated, m_integration_alpha);
+
+        high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
         // TODO: Variance estimation
         // INPUT: integrated moments
@@ -418,6 +420,8 @@ void Scene::recombineColor(const ColorBuffer &cb, const ResultBuffer &direct,
      m_reconstructionShader->setTexture("direct", direct.color_texture());
      m_reconstructionShader->setTexture("indirect", indirect.color_texture());
      m_reconstructionShader->setTexture("albedo", cb.getAlbedoTexture());
+     m_reconstructionShader->setTexture("direct1spp", cb.getDirectTexture());
+     m_reconstructionShader->setTexture("indirect1spp", cb.getIndirectTexture());
      renderQuad();
      m_reconstructionShader->unbind();
      m_displayBuffer->unbind();
