@@ -5,6 +5,7 @@ in vec2 uv;
 layout (location = 0) out vec3 uv_prev; // u, v, and consistency
 
 // Previous frame camera
+uniform mat4 v;
 uniform mat4 v_prev;
 uniform mat4 p_prev;
 
@@ -43,6 +44,10 @@ void main() {
   vec2 delta = uv_prev.xy - uv;
   bool big_motion = length(delta / (texelSize)) > 1.0;
   uv_prev.xy = uv + delta * float(big_motion);
+
+  if(v == v_prev){
+    uv_prev.xy = uv;
+  }
 
   // consistency check current and previous pos
   // float id_prev = texture(pos_id_prev, abs(uv_prev.xy)).a;

@@ -235,8 +235,11 @@ void Scene::render() {
         // Pathtracing
         // INPUT: scene
         // OUTPUT: direct/indirect lighting color
-        //high_resolution_clock::time_point t1 = high_resolution_clock::now();
+        high_resolution_clock::time_point t1 = high_resolution_clock::now();
         auto buffers = this->trace();
+        high_resolution_clock::time_point t2 = high_resolution_clock::now();
+        float duration_trace = duration_cast<milliseconds>( t2-t1 ).count() / 1000.0;
+        std::cout << "Scene took " << duration_trace << " seconds to filter." << std::endl;
 
         ColorBuffer cb = ColorBuffer(width, height, buffers);
         m_SVGFGBuffer->set_textures(buffers);
@@ -257,7 +260,6 @@ void Scene::render() {
         // this->draw_alpha(m_directHistory->color_history());
         // motion_vectors.display();
 
-        high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
         // TODO: Variance estimation
         // INPUT: integrated moments
@@ -296,9 +298,9 @@ void Scene::render() {
 
         // motion_vectors.display();
 
-        //high_resolution_clock::time_point t3 = high_resolution_clock::now();
-        //float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
-        //std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
+        high_resolution_clock::time_point t3 = high_resolution_clock::now();
+        float duration = duration_cast<milliseconds>( t3 - t2 ).count() / 1000.0;
+        std::cout << "Scene took " << duration << " seconds to filter." << std::endl;
 
         // Swap current and previous G buffers, update camera_prev
         // TODO maybe don't do this in render code?
@@ -341,6 +343,7 @@ void Scene::calc_motion_vectors(ResultBuffer& out) const {
   }
   out.bind();
   m_motionVectorsShader->bind();
+  m_motionVectorsShader->setUniform("v", m_camera.getViewMatrix());
   m_motionVectorsShader->setUniform("v_prev", m_camera_prev.getViewMatrix());
   m_motionVectorsShader->setUniform("p_prev", m_camera_prev.getProjectionMatrix());
   m_motionVectorsShader->setTexture("pos_id_prev", m_SVGFGBuffer_prev->position_mesh_id_texture());

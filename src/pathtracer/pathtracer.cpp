@@ -70,6 +70,7 @@ RenderBuffers PathTracer::traceScene(const Scene& scene) {
 }
 
 void PathTracer::render(const Scene& scene, RenderBuffers& buffs, glm::mat4x4 &invViewMat, int x0, int y0, int x1, int y1) {
+  std::cout << "SAMPLES: " << m_numSamples << std::endl;
     for (int y = y0; y < y1; y++) {
         for (int x = x0; x < x1; x++) {
             int offset = x + ((m_height - y - 1) * m_width);
