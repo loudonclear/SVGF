@@ -2,7 +2,7 @@
 
 Loudon Cohen & Raphael Kargon
 
-[Link to Github repo](https://github.com/loudonclear/cs224final)
+[Link to Github repo](https://github.com/loudonclear/cs224final) (**note**: use branch `temporal-history`)
 
 ## Features
 
