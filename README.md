@@ -1,5 +1,9 @@
 # CS224 Final Project &mdash; Render Denoising
 
+Loudon Cohen & Raphael Kargon
+
+[Link to Github repo](https://github.com/loudonclear/cs224final)
+
 ## Features
 
  - Separation of albedo, direct lighting, and indirect lighting channels
@@ -11,12 +15,13 @@
 ## Known Issues
 
  - Reflections and refractions can be blurry (esp. on flat surfaces)
- -
+ - Temporal history works, but "history length" parameter seems stuck at one, making it difficult to add improvements to areas w/ no history (e.g. spatial variance estimation)
 
-## TODO
-
-- ** Move the temporary buffers created each frame into member variables **
-
-- ** NaN Values accumulated in history **: leads to growing black squares
-
-- NaN values
+## Usage
+```
+ mkdir build && cd build
+ qmake -makefile ../final.pro
+ make release
+ ./release/final <scene xml>
+./release/final -h (for more options)
+```
