@@ -14,9 +14,9 @@ Loudon Cohen & Raphael Kargon
 
 ## Results
 
-![alt text](/results/svgf1.png)
+![results1](./results/svgf1.png)
 
-![alt text](/results/svgf2.png)
+![results2](./results/svgf2.png)
 
 ## Known Issues
 
