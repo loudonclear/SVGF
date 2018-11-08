@@ -14,9 +14,9 @@ Loudon Cohen & Raphael Kargon
 
 ## Results
 
-![results1](/SVGF/results/svgf1.png)
+![results1](https://github.com/loudonclear/SVGF/blob/temporal-history/res/results/svgf1.png)
 
-![results2](/SVGF/results/svgf2.png)
+![results2](https://github.com/loudonclear/SVGF/blob/temporal-history/res/results/svgf2.png)
 
 ## Known Issues
 
