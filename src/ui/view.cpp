@@ -81,9 +81,9 @@ void View::initializeGL() {
     }
 }
 
-void View::change_settings(int renderMode, int numSamples, float alpha, bool temporalReprojection, int waveletIterations, float sigmaP, float sigmaN, float sigmaL, bool fxaa) {
+void View::change_settings(int renderMode, int numSamples, int maxDepth, float alpha, bool temporalReprojection, int waveletIterations, float sigmaP, float sigmaN, float sigmaL, bool fxaa) {
     if (m_scene) {
-        m_scene->change_settings(renderMode, numSamples, alpha, temporalReprojection, waveletIterations, sigmaP, sigmaN, sigmaL, fxaa);
+        m_scene->change_settings(renderMode, numSamples, maxDepth, alpha, temporalReprojection, waveletIterations, sigmaP, sigmaN, sigmaL, fxaa);
     }
 }
 
@@ -145,11 +145,20 @@ void View::updateInputs(float dt) {
     m_scene->setCamera(c);
 }
 
+bool capture = false;
+
 void View::tick() {
     /* Get the number of seconds since the last tick (variable update rate) */
     float dt = m_time.restart() * 0.001f;
 
     updateInputs(dt);
+
+    if (m_scene && m_scene->pipeline() && capture) {
+        capture = false;
+        QString file = QString("C:/Users/Loudon/Desktop/School/cs2240/cs224final/res/results/resi.png");
+        grabFrameBuffer().save(file);
+    }
+
 
     /* Flag this view for repainting (Qt will call paintGL() soon after) */
     update();
@@ -165,6 +174,9 @@ void View::keyPressEvent(QKeyEvent *event) {
     }
     if (event->key() == Qt::Key_Space) {
       if (m_scene) m_scene->pipeline() = !m_scene->pipeline();
+    }
+    if (event->key() == Qt::Key_K) {
+        capture = true;
     }
 }
 void View::keyReleaseEvent(QKeyEvent *event) {

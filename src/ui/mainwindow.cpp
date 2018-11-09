@@ -18,7 +18,7 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::file_open() {
-    QString file = QFileDialog::getOpenFileName(this, "Open File", "./res/scenes/");
+    QString file = QFileDialog::getOpenFileName(this, "Open File", "C:/Users/Loudon/Desktop/School/cs2240/cs224final/res/scenes/");
     if (!file.isNull()) {
         ui->view->loadScene(file);
         change_settings();
@@ -27,7 +27,7 @@ void MainWindow::file_open() {
 
 void MainWindow::on_actionSave_triggered()
 {
-    QString file = QFileDialog::getSaveFileName(this, "Save File", "./res/scenes/");
+    QString file = QFileDialog::getSaveFileName(this, "Save File", "../res/scenes/");
     if (!file.isNull()) {
         ui->view->grabFrameBuffer().save(file);
     }
@@ -37,12 +37,14 @@ void MainWindow::change_settings() {
 
     int rendermode = ui->fullButton->isChecked() ? 0 : (ui->directButton->isChecked() ? 1 : (ui->indirectButton->isChecked() ? 2 : 3));
     int samples = ui->samplesSlider->value();
+    int maxDepth = ui->depthSlider->value();
     float temporalAlpha = ui->temporalSlider->value() / 100.f;
     bool temporalReprojection = ui->temporalReprojectionCheckBox->isChecked();
     int waveletIterations = ui->waveletSlider->value();
     bool fxaa = ui->fxaaCheckBox->isChecked();
 
     ui->samplesSliderBox->setValue(samples);
+    ui->depthSliderBox->setValue(maxDepth);
     ui->waveletSliderBox->setValue(waveletIterations);
     ui->temporalSliderBox->setValue(temporalAlpha);
 
@@ -50,5 +52,5 @@ void MainWindow::change_settings() {
     float sigmaN = ui->sigmaNBox->value();
     float sigmaL = ui->sigmaLBox->value();
 
-    ui->view->change_settings(rendermode, samples, temporalAlpha, temporalReprojection, waveletIterations, sigmaP, sigmaN, sigmaL, fxaa);
+    ui->view->change_settings(rendermode, samples, maxDepth, temporalAlpha, temporalReprojection, waveletIterations, sigmaP, sigmaN, sigmaL, fxaa);
 }

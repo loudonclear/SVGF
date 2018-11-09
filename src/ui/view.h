@@ -21,7 +21,7 @@ class View : public QGLWidget {
 public:
     View(QWidget *parent);
 
-    void change_settings(int renderMode, int numSamples, float alpha, bool temporalReprojection, int waveletIterations, float sigmaP, float sigmaN, float sigmaL, bool fxaa);
+    void change_settings(int renderMode, int numSamples, int maxDepth, float alpha, bool temporalReprojection, int waveletIterations, float sigmaP, float sigmaN, float sigmaL, bool fxaa);
     void loadScene(QString file);
 
 private:

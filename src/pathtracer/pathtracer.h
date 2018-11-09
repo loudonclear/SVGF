@@ -20,11 +20,14 @@ public:
     unsigned int numSamples() const { return m_numSamples; }
     void numSamples(unsigned int s) { m_numSamples = s; }
 
+    unsigned int maxDepth() const { return m_maxDepth; }
+    void maxDepth(unsigned int d) { m_maxDepth = d; }
+
     static float random();
 
 private:
     int m_width, m_height;
-    unsigned int m_numSamples;
+    unsigned int m_numSamples, m_maxDepth;
 
 
   RenderBuffers::Element tracePixel(int x, int y, const Scene &scene, const glm::mat4x4 &invViewMatrix);

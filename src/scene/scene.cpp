@@ -117,12 +117,13 @@ std::unique_ptr<Scene> Scene::load(QString filename, int width, int height) {
   return scene;
 }
 
-void Scene::change_settings(int renderMode, int numSamples, float alpha, bool temporalReprojection, int waveletIterations, float sigmaP, float sigmaN, float sigmaL, bool fxaa) {
+void Scene::change_settings(int renderMode, int numSamples, int maxDepth, float alpha, bool temporalReprojection, int waveletIterations, float sigmaP, float sigmaN, float sigmaL, bool fxaa) {
     m_reconstructionShader->bind();
     m_reconstructionShader->setUniform("mode", renderMode);
     m_reconstructionShader->unbind();
 
     m_pathTracer->numSamples(numSamples);
+    m_pathTracer->maxDepth(maxDepth);
 
     wavelet_iterations = waveletIterations;
 
@@ -239,7 +240,7 @@ void Scene::render() {
         auto buffers = this->trace();
         high_resolution_clock::time_point t2 = high_resolution_clock::now();
         float duration_trace = duration_cast<milliseconds>( t2-t1 ).count() / 1000.0;
-        std::cout << "Scene took " << duration_trace << " seconds to filter." << std::endl;
+        std::cout << "Scene took " << duration_trace << " seconds to trace." << std::endl;
 
         ColorBuffer cb = ColorBuffer(width, height, buffers);
         m_SVGFGBuffer->set_textures(buffers);
@@ -390,6 +391,11 @@ void Scene::waveletPass(ResultBuffer& rb, const Buffer& input_buff, ColorHistory
     ColorVarianceBuffer *cvb_output = m_colorVarianceBuffer2.get();
     // Initial color
     input_buff.blit_to(*cvb_input);
+
+    if (iterations == 0) {
+        cvb_input->blit_to(rb);
+        return;
+    }
 
     // Blit between two FBOs for colorVariance
     cvb_output->bind();

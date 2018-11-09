@@ -124,13 +124,13 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>330</y>
+       <y>380</y>
        <width>131</width>
        <height>21</height>
       </rect>
      </property>
      <property name="minimum">
-      <number>1</number>
+      <number>0</number>
      </property>
      <property name="maximum">
       <number>5</number>
@@ -146,7 +146,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>310</y>
+       <y>360</y>
        <width>111</width>
        <height>16</height>
       </rect>
@@ -159,7 +159,7 @@
      <property name="geometry">
       <rect>
        <x>160</x>
-       <y>330</y>
+       <y>380</y>
        <width>21</width>
        <height>22</height>
       </rect>
@@ -241,7 +241,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>290</y>
+       <y>340</y>
        <width>161</width>
        <height>16</height>
       </rect>
@@ -254,7 +254,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>230</y>
+       <y>280</y>
        <width>131</width>
        <height>21</height>
       </rect>
@@ -273,7 +273,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>210</y>
+       <y>260</y>
        <width>111</width>
        <height>16</height>
       </rect>
@@ -286,7 +286,7 @@
      <property name="geometry">
       <rect>
        <x>160</x>
-       <y>230</y>
+       <y>280</y>
        <width>31</width>
        <height>22</height>
       </rect>
@@ -311,7 +311,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>190</y>
+       <y>240</y>
        <width>161</width>
        <height>16</height>
       </rect>
@@ -324,7 +324,7 @@
      <property name="geometry">
       <rect>
        <x>120</x>
-       <y>360</y>
+       <y>410</y>
        <width>62</width>
        <height>22</height>
       </rect>
@@ -343,7 +343,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>360</y>
+       <y>410</y>
        <width>81</width>
        <height>16</height>
       </rect>
@@ -356,7 +356,7 @@
      <property name="geometry">
       <rect>
        <x>120</x>
-       <y>390</y>
+       <y>440</y>
        <width>62</width>
        <height>22</height>
       </rect>
@@ -375,7 +375,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>390</y>
+       <y>440</y>
        <width>81</width>
        <height>16</height>
       </rect>
@@ -388,7 +388,7 @@
      <property name="geometry">
       <rect>
        <x>120</x>
-       <y>420</y>
+       <y>470</y>
        <width>62</width>
        <height>22</height>
       </rect>
@@ -407,7 +407,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>420</y>
+       <y>470</y>
        <width>81</width>
        <height>16</height>
       </rect>
@@ -420,7 +420,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>260</y>
+       <y>310</y>
        <width>161</width>
        <height>20</height>
       </rect>
@@ -436,7 +436,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>450</y>
+       <y>500</y>
        <width>161</width>
        <height>16</height>
       </rect>
@@ -449,7 +449,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>470</y>
+       <y>520</y>
        <width>161</width>
        <height>20</height>
       </rect>
@@ -459,6 +459,66 @@
      </property>
      <property name="checked">
       <bool>true</bool>
+     </property>
+    </widget>
+    <widget class="QSlider" name="depthSlider">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>220</y>
+       <width>131</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>5</number>
+     </property>
+     <property name="value">
+      <number>4</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QSpinBox" name="depthSliderBox">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>220</y>
+       <width>21</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>true</bool>
+     </property>
+     <property name="buttonSymbols">
+      <enum>QAbstractSpinBox::NoButtons</enum>
+     </property>
+     <property name="minimum">
+      <number>1</number>
+     </property>
+     <property name="maximum">
+      <number>10</number>
+     </property>
+     <property name="value">
+      <number>4</number>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_7">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>200</y>
+       <width>111</width>
+       <height>16</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Max Depth</string>
      </property>
     </widget>
    </widget>
@@ -672,6 +732,22 @@
     <hint type="sourcelabel">
      <x>90</x>
      <y>146</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>511</x>
+     <y>324</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>depthSlider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>change_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>75</x>
+     <y>282</y>
     </hint>
     <hint type="destinationlabel">
      <x>511</x>
