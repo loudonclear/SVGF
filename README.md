@@ -12,6 +12,12 @@ Loudon Cohen & Raphael Kargon
  - Motion vectors -- reprojection to match up points across frames, even w/ movement.
  - Fast approximate anti-aliasing
 
+## Results
+
+![results1](https://github.com/loudonclear/SVGF/blob/temporal-history/res/results/svgf1.png)
+
+![results2](https://github.com/loudonclear/SVGF/blob/temporal-history/res/results/svgf2.png)
+
 ## Known Issues
 
  - Reflections and refractions can be blurry (esp. on flat surfaces)
