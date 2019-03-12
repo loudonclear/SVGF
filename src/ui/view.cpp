@@ -145,20 +145,11 @@ void View::updateInputs(float dt) {
     m_scene->setCamera(c);
 }
 
-bool capture = false;
-
 void View::tick() {
     /* Get the number of seconds since the last tick (variable update rate) */
     float dt = m_time.restart() * 0.001f;
 
     updateInputs(dt);
-
-    if (m_scene && m_scene->pipeline() && capture) {
-        capture = false;
-        QString file = QString("C:/Users/Loudon/Desktop/School/cs2240/cs224final/res/results/resi.png");
-        grabFrameBuffer().save(file);
-    }
-
 
     /* Flag this view for repainting (Qt will call paintGL() soon after) */
     update();
@@ -174,9 +165,6 @@ void View::keyPressEvent(QKeyEvent *event) {
     }
     if (event->key() == Qt::Key_Space) {
       if (m_scene) m_scene->pipeline() = !m_scene->pipeline();
-    }
-    if (event->key() == Qt::Key_K) {
-        capture = true;
     }
 }
 void View::keyReleaseEvent(QKeyEvent *event) {
@@ -195,8 +183,6 @@ void View::mouseMoveEvent(QMouseEvent *event) {
         int deltaY = event->y() - height() / 2;
         if (!deltaX && !deltaY) return;
         QCursor::setPos(mapToGlobal(QPoint(width() / 2, height() / 2)));
-
-        // TODO: Handle mouse movements here
     }
 }
 
